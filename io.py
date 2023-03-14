@@ -1,8 +1,20 @@
+from datetime import datetime
 from pathlib import Path
-from typing import List,Union
+from typing import List, Union
 
 import torch
 from torchvision.utils import save_image
+
+def setup_by_config(config):
+    now = datetime.now().strftime("%Y%m%d-%H%M%S")
+    output_path = config["output_path"]
+    folder_name = (
+        f"{config['model']}_backend-{idist.backend()}-{idist.get_world_size()}_{now}"
+    )
+    output_path = Path(output_path) / folder_name
+    if not output_path.exists():
+        output_path.mkdir(parents=True)
+    config["output_path"] = output_path.as_posix()
 
 
 def save_multichannel_grayscale_image(tensor: torch.Tensor, filenames: List[Union[str, Path]], normalize=False):

@@ -47,6 +47,18 @@ def getFBPOperator(
     return odl.tomo.fbp_op(fp)
 
 
+def getpairedCTOperator(
+    size,
+    angles=None,
+    mode: Literal['cone', 'parallel'] = 'parallel',
+    dim: int = 2,
+    src_radius: float = None,
+    det_radius: float = None
+):
+    fp = getFPOperator(size, angles, mode, dim, src_radius, det_radius)
+    return fp, odl.tomo.fbp_op(fp)
+
+
 def getFPLayer2D(size: int, angles: int = None):
     fp = getFPOperator(size, angles)
     return odl_torch.OperatorModule(fp)
