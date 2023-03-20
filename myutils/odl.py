@@ -69,9 +69,9 @@ def getFBPLayer2D(size: int, angles: int = None):
     return odl_torch.OperatorModule(fbp)
 
 
-def getFPfunc(size: int, angles: int = None):
+def getFPfunc2D(size: int, angles: int = None):
     return partial(odl_torch.OperatorFunction.apply, getFPOperator(size, angles))
 
 
-def getFBPfunc(size: int, angles: int = None):
+def getFBPfunc2D(size: int, angles: int = None):
     return partial(odl_torch.OperatorFunction.apply, getFBPOperator(size, angles))

@@ -12,10 +12,11 @@ from ignite.contrib.handlers.clearml_logger import (
 
 
 def setup_clearML_config(config):
-    task = Task.init(project_name=config.project_name, task_name=config.task_name)
+    task = Task.init(project_name=config.project_name, task_name=config.task_name, output_uri=config.output_path)
     task.connect_configuration(config)
     if config.hyper_params is not None:
         task.connect({k: config[k] for k in config.hyper_params})
+    return task
 
 
 def setup_clearMLLogger(project_name, task_name, trainer, train_evaluator, validation_evaluator, model, optimizer, metric_names, log_every=100):
