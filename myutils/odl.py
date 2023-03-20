@@ -5,7 +5,7 @@ import odl
 from odl.contrib import torch as odl_torch
 
 
-def getFPOperator(
+def get_FP_operator(
     size: int,
     angles: int = None,
     mode: Literal['cone', 'parallel'] = 'parallel',
@@ -35,7 +35,7 @@ def getFPOperator(
     return odl.tomo.RayTransform(space, geometry)
 
 
-def getFBPOperator(
+def get_FBP_operator(
     size,
     angles=None,
     mode: Literal['cone', 'parallel'] = 'parallel',
@@ -43,11 +43,11 @@ def getFBPOperator(
     src_radius: float = None,
     det_radius: float = None
 ):
-    fp = getFPOperator(size, angles, mode, dim, src_radius, det_radius)
+    fp = get_FP_operator(size, angles, mode, dim, src_radius, det_radius)
     return odl.tomo.fbp_op(fp)
 
 
-def getpairedCTOperator(
+def get_paired_CT_operator(
     size,
     angles=None,
     mode: Literal['cone', 'parallel'] = 'parallel',
@@ -55,23 +55,33 @@ def getpairedCTOperator(
     src_radius: float = None,
     det_radius: float = None
 ):
-    fp = getFPOperator(size, angles, mode, dim, src_radius, det_radius)
+    fp = get_FP_operator(size, angles, mode, dim, src_radius, det_radius)
     return fp, odl.tomo.fbp_op(fp)
 
 
-def getFPLayer2D(size: int, angles: int = None):
-    fp = getFPOperator(size, angles)
+def get_FP_layer(size: int, angles: int = None, dim=2):
+    fp = get_FP_operator(size, angles, dim=dim)
     return odl_torch.OperatorModule(fp)
 
 
-def getFBPLayer2D(size: int, angles: int = None):
-    fbp = getFBPOperator(size, angles)
+def get_FBP_layer(size: int, angles: int = None, dim=2):
+    fbp = get_FBP_operator(size, angles, dim=dim)
     return odl_torch.OperatorModule(fbp)
 
 
-def getFPfunc2D(size: int, angles: int = None):
-    return partial(odl_torch.OperatorFunction.apply, getFPOperator(size, angles))
+def get_paired_CT_layer(size: int, angles: int = None, dim=2):
+    fp, fbp = get_paired_CT_operator(size, angles, dim=dim)
+    return odl_torch.OperatorModule(fp), odl_torch.OperatorModule(fbp)
 
 
-def getFBPfunc2D(size: int, angles: int = None):
-    return partial(odl_torch.OperatorFunction.apply, getFBPOperator(size, angles))
+def get_FP_func(size: int, angles: int = None, dim=2):
+    return partial(odl_torch.OperatorFunction.apply, get_FP_operator(size, angles, dim=dim))
+
+
+def get_FBP_func(size: int, angles: int = None, dim=2):
+    return partial(odl_torch.OperatorFunction.apply, get_FBP_operator(size, angles, dim=dim))
+
+
+def get_paired_CT_func(size: int, angles: int = None, dim=2):
+    fp, fbp = get_paired_CT_operator(size, angles, dim=dim)
+    return partial(odl_torch.OperatorFunction.apply, fp), partial(odl_torch.OperatorFunction.apply, fbp)

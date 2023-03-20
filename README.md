@@ -1,2 +1,2 @@
-# MyUtil
+# MyUtils
 A library for my research
