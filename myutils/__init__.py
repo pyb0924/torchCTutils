@@ -1,4 +1,4 @@
-name = "myutils"
+VERSION = "0.0.2"
 
 from .ignite import *
 from .model import *
