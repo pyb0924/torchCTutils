@@ -3,7 +3,7 @@ from functools import reduce
 import torch
 from torch import nn
 
-from ..odl import get_FBP_layer
+from ..odl import odl_FBP_layer
 
 
 class FeatureConnectionA(nn.Module):
@@ -71,7 +71,7 @@ class FeatureFBPConnection(Feature2Dto3D):
         self.output_size = output_size
         _, channels, h, w = self.feature_shape
 
-        self.fbp = get_FBP_layer(output_size, angles, dim=3)
+        self.fbp = odl_FBP_layer(output_size, angles, dim=3)
 
     def forward(self, *features):
         pass
