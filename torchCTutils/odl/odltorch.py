@@ -1,3 +1,4 @@
+from functools import partial
 from typing import Callable, Literal
 
 from odl.contrib.torch import OperatorFunction, OperatorModule

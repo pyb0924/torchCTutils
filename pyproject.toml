@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 description = "A library for my research"
-name = "myutils"
+name = "torchCTutils"
 authors = [{ name = "pyb0924", email = "pyb0924@sjtu.edu.cn" }]
 readme = "README.md"
 license = { file = "LICENSE" }
@@ -16,10 +16,7 @@ classifiers = [
 dynamic = ["version"]
 
 [project.urls]
-repository = "https://github.com/pyb0924/myutils"
+repository = "https://github.com/pyb0924/torchCTutils"
 
 [tool.setuptools.dynamic]
-version = { attr = "myutils.VERSION" }
-
-[tool.setuptools.packages.find]
-exclude = ["myutils.test*"]
+version = { attr = "torchCTutils.VERSION" }
