@@ -1,5 +1,5 @@
 from functools import partial
-from typing import Callable, Literal
+from typing import Literal, Optional
 
 from odl.contrib.torch import OperatorFunction, OperatorModule
 from torch import nn, Tensor
@@ -7,7 +7,9 @@ from torch import nn, Tensor
 from .operator import get_FP_operator, get_FBP_operator, get_paired_CT_operator
 
 
-def odl_FP_layer(size: int, angles: int = None, dim: Literal[2, 3] = 2) -> nn.Module:
+def odl_FP_layer(
+    size: int, angles: Optional[int] = None, dim: Literal[2, 3] = 2
+) -> OperatorModule:
     """Get forward projection(FP) module in PyTorch
 
     Args:
@@ -22,7 +24,9 @@ def odl_FP_layer(size: int, angles: int = None, dim: Literal[2, 3] = 2) -> nn.Mo
     return OperatorModule(fp)
 
 
-def odl_FBP_layer(size: int, angles: int = None, dim: Literal[2, 3] = 2) -> nn.Module:
+def odl_FBP_layer(
+    size: int, angles: Optional[int] = None, dim: Literal[2, 3] = 2
+) -> OperatorModule:
     """Get filtered back projection(FP) module in PyTorch
 
     Args:
@@ -37,7 +41,9 @@ def odl_FBP_layer(size: int, angles: int = None, dim: Literal[2, 3] = 2) -> nn.M
     return OperatorModule(fbp)
 
 
-def get_paired_CT_layer(size: int, angles: int = None, dim: Literal[2, 3] = 2) -> tuple[nn.Module]:
+def get_paired_CT_layer(
+    size: int, angles: Optional[int] = None, dim: Literal[2, 3] = 2
+) -> tuple[OperatorModule, OperatorModule]:
     """Get paired FP/FBP module in PyTorch
 
     Args:
@@ -67,7 +73,7 @@ def odlFP(x: Tensor, dim: Literal[2, 3] = 2) -> Tensor:
     return OperatorFunction.apply(fp, x)
 
 
-def odlFBP(x: Tensor, size: int, dim: Literal[2, 3] = 2):
+def odlFBP(x: Tensor, size: int, dim: Literal[2, 3] = 2) -> Tensor:
     """Run filterd back projection(FBP) implemented by ODL
 
     Args:
@@ -82,7 +88,7 @@ def odlFBP(x: Tensor, size: int, dim: Literal[2, 3] = 2):
     return OperatorFunction.apply(fbp, x)
 
 
-def get_paired_CT_func(size: int, dim: Literal[2, 3] = 2) -> tuple[Callable[[Tensor], Tensor]]:
+def get_paired_CT_func(size: int, dim: Literal[2, 3] = 2):
     """Get paired FP/FBP PyTorch function.
 
     Args:
@@ -90,7 +96,7 @@ def get_paired_CT_func(size: int, dim: Literal[2, 3] = 2) -> tuple[Callable[[Ten
         dim (Literal[2, 3], optional): 2D/3D operation. Defaults to 2.
 
     Returns:
-        Tuple[Callable[[Tensor], Tensor]]: paired (odlFP, odlFBP) 
+        Tuple[Callable[[Tensor], Tensor]]: paired (odlFP, odlFBP)
     """
     fp, fbp = get_paired_CT_operator(size, dim=dim)
     return partial(OperatorFunction.apply, fp), partial(OperatorFunction.apply, fbp)

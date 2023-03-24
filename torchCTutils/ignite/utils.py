@@ -5,22 +5,22 @@ from ignite.engine import create_supervised_evaluator, create_supervised_trainer
 from ignite.handlers import Checkpoint
 from ignite.utils import setup_logger
 
+
 def initialize_engines(model, optimizer, criterion, metrics, device):
-    trainer = create_supervised_trainer(
-        model, optimizer, criterion, device=device)
+    trainer = create_supervised_trainer(model, optimizer, criterion, device=device)
     trainer.logger = setup_logger("Trainer")
 
-    train_evaluator = create_supervised_evaluator(
-        model, metrics=metrics, device=device)
+    train_evaluator = create_supervised_evaluator(model, metrics=metrics, device=device)
     train_evaluator.logger = setup_logger("Train Evaluator")
-    
+
     validation_evaluator = create_supervised_evaluator(
-        model, metrics=metrics, device=device)
+        model, metrics=metrics, device=device
+    )
     validation_evaluator.logger = setup_logger("Val Evaluator")
     return trainer, train_evaluator, validation_evaluator
 
 
-def load_checkpoint(resume_from):
+def load_checkpoint(resume_from, to_save):
     checkpoint_fp = Path(resume_from)
     assert (
         checkpoint_fp.exists()

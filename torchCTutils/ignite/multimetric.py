@@ -23,16 +23,15 @@ class MultiChannelMetric(Metric):
     def update(self, output):
         y_pred, y = output[0].detach(), output[1].detach()
         for i, metric in enumerate(self._metric):
-            metric.update(
-                (y_pred[:, i, :, :].unsqueeze(1), y[:, i, :, :].unsqueeze(1))
-            )
+            metric.update((y_pred[:, i, :, :].unsqueeze(1), y[:, i, :, :].unsqueeze(1)))
         self._num_examples += y.shape[0]
 
-    @sync_all_reduce('_num_examples')
+    @sync_all_reduce("_num_examples")
     def compute(self):
         if self._num_examples == 0:
             raise NotComputableError(
-                'MultiChannelMetric must have at least one example before it can be computed.')
+                "MultiChannelMetric must have at least one example before it can be computed."
+            )
 
         results = []
         for metric in self._metric:
@@ -47,13 +46,13 @@ class MultiChannelMetric(Metric):
 def get_multichannel_metric_names(metric_keys, channel_names):
     metric_names = []
     for key in metric_keys:
-        metric_names.extend(
-            [f'{key}_{channel_name}' for channel_name in channel_names])
+        metric_names.extend([f"{key}_{channel_name}" for channel_name in channel_names])
     return metric_names
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     from ignite.metrics import RootMeanSquaredError, SSIM
+
     torch.manual_seed(8)
     batch_size = 64
     channels = 3

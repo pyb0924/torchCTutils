@@ -14,7 +14,6 @@ def log_basic_info(logger, config):
         logger.info(
             f"- GPU Device: {torch.cuda.get_device_name(idist.get_local_rank())}"
         )
-        logger.info(f"- CUDA version: {torch.version.cuda}")
         logger.info(f"- CUDNN version: {cudnn.version()}")
 
     logger.info("\n")
@@ -35,10 +34,3 @@ def log_metrics(logger, epoch, elapsed, tag, metrics):
     logger.info(
         f"\nEpoch {epoch} - Evaluation time (seconds): {elapsed:.2f} - {tag} metrics:\n {metrics_output}"
     )
-
-
-
-
-
-
-

@@ -1,16 +1,14 @@
-from functools import partial
-from typing import Literal, Callable
-
+from typing import Literal, Optional
 import odl
 
 
 def get_FP_operator(
     size: int,
-    angles: int = None,
-    mode: Literal['cone', 'parallel'] = 'parallel',
+    angles: Optional[int] = None,
+    mode: Literal["cone", "parallel"] = "parallel",
     dim: Literal[2, 3] = 2,
-    src_radius: float = None,
-    det_radius: float = None
+    src_radius: Optional[float] = None,
+    det_radius: Optional[float] = None,
 ) -> odl.Operator:
     """Get forward projection(FP) operator from ODL
 
@@ -31,34 +29,33 @@ def get_FP_operator(
         odl.Operator: FP operator
     """
     if dim != 2 and dim != 3:
-        raise ValueError('Invalid dimension for FP!')
+        raise ValueError("Invalid dimension for FP!")
 
     if dim == 2:
         space = odl.uniform_discr([-1, -1], [1, 1], [size, size])
     else:
         space = odl.uniform_discr([-1, -1, -1], [1, 1, 1], [size, size, size])
 
-    if mode != 'parallel' and mode != 'cone':
-        raise ValueError(
-            'Undefined geometry mode! Availble mode: [cone, parallel]')
+    if mode != "parallel" and mode != "cone":
+        raise ValueError("Undefined geometry mode! Availble mode: [cone, parallel]")
 
-    if mode == 'parallel':
+    if mode == "parallel":
         geometry = odl.tomo.parallel_beam_geometry(space, num_angles=angles)
     else:
         if src_radius == None or det_radius == None:
-            raise ValueError('Invalid cone beam parameters!')
+            raise ValueError("Invalid cone beam parameters!")
         geometry = odl.tomo.cone_beam_geometry(space, src_radius, det_radius)
 
     return odl.tomo.RayTransform(space, geometry)
 
 
 def get_FBP_operator(
-    size,
-    angles=None,
-    mode: Literal['cone', 'parallel'] = 'parallel',
+    size: int,
+    angles: Optional[int] = None,
+    mode: Literal["cone", "parallel"] = "parallel",
     dim: Literal[2, 3] = 2,
-    src_radius: float = None,
-    det_radius: float = None
+    src_radius: Optional[float] = None,
+    det_radius: Optional[float] = None,
 ) -> odl.Operator:
     """Get filtered back projection(FP) operator from ODL
 
@@ -83,13 +80,13 @@ def get_FBP_operator(
 
 
 def get_paired_CT_operator(
-    size,
-    angles=None,
-    mode: Literal['cone', 'parallel'] = 'parallel',
+    size: int,
+    angles: Optional[int] = None,
+    mode: Literal["cone", "parallel"] = "parallel",
     dim: Literal[2, 3] = 2,
-    src_radius: float = None,
-    det_radius: float = None
-) -> tuple[odl.Operator]:
+    src_radius: Optional[float] = None,
+    det_radius: Optional[float] = None,
+) -> tuple[odl.Operator, odl.Operator]:
     """Get filtered back projection(FBP) operator from ODL
 
     Args:
@@ -110,4 +107,3 @@ def get_paired_CT_operator(
     """
     fp = get_FP_operator(size, angles, mode, dim, src_radius, det_radius)
     return fp, odl.tomo.fbp_op(fp)
-
