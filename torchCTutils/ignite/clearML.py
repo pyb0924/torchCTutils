@@ -1,3 +1,4 @@
+from pathlib import Path
 from clearml import Task
 
 from ignite.engine import Events
@@ -15,12 +16,17 @@ def setup_clearML_config(config):
     task = Task.init(
         project_name=config.project_name,
         task_name=config.task_name,
-        output_uri=config.output_path,
     )
     task.connect_configuration(config)
     if config.hyper_params is not None:
         task.connect({k: config[k] for k in config.hyper_params})
     return task
+
+
+def get_dirname_from_config(config) -> Path:
+    dirname = Path(config.output_path) / config.project_name / config.task_name
+    dirname.mkdir(parents=True, exist_ok=True)
+    return dirname
 
 
 def setup_clearMLLogger(
@@ -64,32 +70,32 @@ def setup_clearMLLogger(
         optimizer=optimizer,
     )
 
-    # Attach the logger to the trainer to log model's weights norm
-    clearml_logger.attach(
-        trainer,
-        log_handler=WeightsScalarHandler(model),
-        event_name=Events.ITERATION_COMPLETED(every=log_every),
-    )
+    # # Attach the logger to the trainer to log model's weights norm
+    # clearml_logger.attach(
+    #     trainer,
+    #     log_handler=WeightsScalarHandler(model),
+    #     event_name=Events.ITERATION_COMPLETED(every=log_every),
+    # )
 
-    # Attach the logger to the trainer to log model's weights as a histogram
-    clearml_logger.attach(
-        trainer,
-        log_handler=WeightsHistHandler(model),
-        event_name=Events.EPOCH_COMPLETED(every=log_every),
-    )
+    # # Attach the logger to the trainer to log model's weights as a histogram
+    # clearml_logger.attach(
+    #     trainer,
+    #     log_handler=WeightsHistHandler(model),
+    #     event_name=Events.EPOCH_COMPLETED(every=log_every),
+    # )
 
-    # Attach the logger to the trainer to log model’s gradients as scalars
-    clearml_logger.attach(
-        trainer,
-        log_handler=GradsScalarHandler(model),
-        event_name=Events.ITERATION_COMPLETED(every=log_every),
-    )
+    # # Attach the logger to the trainer to log model’s gradients as scalars
+    # clearml_logger.attach(
+    #     trainer,
+    #     log_handler=GradsScalarHandler(model),
+    #     event_name=Events.ITERATION_COMPLETED(every=log_every),
+    # )
 
-    # Attach the logger to the trainer to log model's gradients as a histogram
-    clearml_logger.attach(
-        trainer,
-        log_handler=GradsHistHandler(model),
-        event_name=Events.EPOCH_COMPLETED(every=log_every),
-    )
+    # # Attach the logger to the trainer to log model's gradients as a histogram
+    # clearml_logger.attach(
+    #     trainer,
+    #     log_handler=GradsHistHandler(model),
+    #     event_name=Events.EPOCH_COMPLETED(every=log_every),
+    # )
 
     return clearml_logger

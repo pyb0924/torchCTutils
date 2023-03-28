@@ -2,7 +2,25 @@ import torch
 from torch import nn
 import torch.nn.functional as F
 
-from .basemodel import DoubleConv
+
+class DoubleConv(nn.Sequential):
+    """(convolution => [BN] => ReLU) * 2"""
+
+    def __init__(self, in_channels, out_channels, mid_channels=None):
+        super().__init__()
+        if not mid_channels:
+            mid_channels = out_channels
+
+        self.conv1 = nn.Conv2d(
+            in_channels, mid_channels, kernel_size=3, padding=1, bias=False
+        )
+        self.norm1 = nn.BatchNorm2d(mid_channels)
+        self.relu1 = nn.ReLU(inplace=True)
+        self.conv2 = nn.Conv2d(
+            mid_channels, out_channels, kernel_size=3, padding=1, bias=False
+        )
+        self.norm2 = nn.BatchNorm2d(out_channels)
+        self.relu2 = (nn.ReLU(inplace=True),)
 
 
 class UNet(nn.Module):

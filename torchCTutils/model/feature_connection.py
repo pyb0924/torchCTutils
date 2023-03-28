@@ -1,7 +1,7 @@
 from functools import reduce
 
 import torch
-from torch import nn
+from torch import nn, Tensor
 
 from ..odl import odl_FBP_layer
 
@@ -13,13 +13,13 @@ class FeatureConnectionA(nn.Module):
         super(FeatureConnectionA, self).__init__()
         self.feature_shape = feature_shape
         self.output_size = output_size
-        _, channels, h, w = self.feature_shape
+        channels, h, w = self.feature_shape
         self.flatten = nn.Flatten()
         self.fc = nn.Linear(channels * h * w, output_size**3)
         self.dropout = nn.Dropout()
         self.relu = nn.ReLU(inplace=True)
 
-    def forward(self, feature):
+    def forward(self, feature) -> Tensor:
         feature = self.relu(self.dropout(self.fc(self.flatten(feature))))
         batch_size = self.feature_shape[0]
         return feature.reshape(
@@ -30,10 +30,8 @@ class FeatureConnectionA(nn.Module):
 class FeatureConnectionB(nn.Module):
     """2D => Conv-IN-ReLU(2D) => Expand => Conv-IN-ReLU(3D) => 3D"""
 
-    def __init__(self, feature_shape, output_channels=32):
+    def __init__(self, channels, output_channels=32):
         super(FeatureConnectionB, self).__init__()
-        self.feature_shape = feature_shape
-        _, channels, h, w = self.feature_shape
         self.output_channels = output_channels
         self.conv2d = nn.Sequential(
             nn.Conv2d(channels, channels, kernel_size=3, padding=1),
@@ -62,18 +60,18 @@ class FeatureConnectionC(nn.Module):
 
     def forward(self, *features):
         num_features = len(features)
-        features = map(lambda x: torch.permute(x, (0, 1, 2, 4, 3)), features)
+        features = list(map(lambda x: torch.permute(x, (0, 1, 2, 4, 3)), features))
         features = reduce(lambda x, y: x + y, features, 0)
         return features / num_features
 
 
-class FeatureFBPConnection():
+class FeatureFBPConnection(nn.Module):
     """2D => Combination => (3D) => FP => Interpolation => FBP => 3D"""
 
     def __init__(self, feature_shape, angles=60, output_size=64):
-        super(FeatureConnectionA, self).__init__(feature_shape)
+        super().__init__()
         self.output_size = output_size
-        _, channels, h, w = self.feature_shape
+        _, channels, h, w = feature_shape
 
         self.fbp = odl_FBP_layer(output_size, angles, dim=3)
 
