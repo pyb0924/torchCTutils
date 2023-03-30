@@ -2,7 +2,7 @@ from functools import partial
 from typing import Literal, Optional
 
 from odl.contrib.torch import OperatorFunction, OperatorModule
-from torch import nn, Tensor
+from torch import Tensor
 
 from .operator import get_FP_operator, get_FBP_operator, get_paired_CT_operator
 

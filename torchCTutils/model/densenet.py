@@ -65,7 +65,7 @@ class DenseBlock(nn.ModuleDict):
                 bn_size=bn_size,
                 drop_rate=drop_rate,
             )
-            self.add_module("denselayer%d" % (i + 1), layer)
+            self.add_module(f"denselayer{i}", layer)
 
     def forward(self, init_features):
         features = [init_features]
@@ -73,3 +73,16 @@ class DenseBlock(nn.ModuleDict):
             new_features = layer(features)
             features.append(new_features)
         return torch.cat(features, 1)
+
+
+class Transition(nn.Sequential):
+    """Transition layer between two adjacent DenseBlock"""
+
+    def __init__(self, num_input_feature, num_output_features):
+        super(Transition, self).__init__()
+        self.norm = nn.BatchNorm2d(num_input_feature)
+        self.relu = nn.ReLU(inplace=True)
+        self.conv = nn.Conv2d(
+            num_input_feature, num_output_features, kernel_size=1, stride=1, bias=False
+        )
+        self.pool = nn.AvgPool2d(2, stride=2)

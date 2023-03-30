@@ -9,11 +9,11 @@ from ..odl import odl_FBP_layer
 class FeatureConnectionA(nn.Module):
     """2D => Flatten => FC => Dropout => ReLU => Reshape => 3D"""
 
-    def __init__(self, feature_shape, output_size=32):
+    def __init__(self, feature_shape, output_size):
         super(FeatureConnectionA, self).__init__()
         self.feature_shape = feature_shape
         self.output_size = output_size
-        channels, h, w = self.feature_shape
+        _, channels, h, w = self.feature_shape
         self.flatten = nn.Flatten()
         self.fc = nn.Linear(channels * h * w, output_size**3)
         self.dropout = nn.Dropout()
@@ -23,19 +23,25 @@ class FeatureConnectionA(nn.Module):
         feature = self.relu(self.dropout(self.fc(self.flatten(feature))))
         batch_size = self.feature_shape[0]
         return feature.reshape(
-            (batch_size, 1, self.output_size, self.output_size, self.output_size)
-        )
+            (
+                batch_size,
+                1,
+                self.output_size,
+                self.output_size,
+                self.output_size,
+            )
+        ).expand(-1, self.feature_shape[1], -1, -1, -1)
 
 
 class FeatureConnectionB(nn.Module):
     """2D => Conv-IN-ReLU(2D) => Expand => Conv-IN-ReLU(3D) => 3D"""
 
-    def __init__(self, channels, output_channels=32):
+    def __init__(self, input_channels, output_channels):
         super(FeatureConnectionB, self).__init__()
         self.output_channels = output_channels
         self.conv2d = nn.Sequential(
-            nn.Conv2d(channels, channels, kernel_size=3, padding=1),
-            nn.InstanceNorm2d(channels),
+            nn.Conv2d(input_channels, output_channels, kernel_size=3, padding=1),
+            nn.InstanceNorm2d(output_channels),
             nn.ReLU(inplace=True),
         )
         self.conv3d = nn.Sequential(
@@ -45,11 +51,9 @@ class FeatureConnectionB(nn.Module):
         )
 
     def forward(self, feature):
-        feature = (
-            self.conv2d(feature)
-            .unsqueeze(1)
-            .expand(-1, self.output_channels, -1, -1, -1)
-        )
+        size = feature.shape[-1]
+        feature = self.conv2d(feature).unsqueeze(2).expand(-1, -1, size, -1, -1)
+        return self.conv3d(feature)
 
 
 class FeatureConnectionC(nn.Module):
@@ -58,11 +62,10 @@ class FeatureConnectionC(nn.Module):
     def __init__(self):
         super(FeatureConnectionC, self).__init__()
 
-    def forward(self, *features):
-        num_features = len(features)
+    def forward(self, features):
         features = list(map(lambda x: torch.permute(x, (0, 1, 2, 4, 3)), features))
         features = reduce(lambda x, y: x + y, features, 0)
-        return features / num_features
+        return features
 
 
 class FeatureFBPConnection(nn.Module):
