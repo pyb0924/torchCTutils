@@ -1,7 +1,6 @@
 from copy import copy
-import torch
 
-from ignite.metrics import Metric, SSIM, PSNR, RootMeanSquaredError
+from ignite.metrics import Metric
 from ignite.exceptions import NotComputableError
 from ignite.metrics.metric import sync_all_reduce, reinit__is_reduced
 
@@ -51,7 +50,8 @@ def get_multichannel_metric_names(metric_keys, channel_names):
 
 
 if __name__ == "__main__":
-    from ignite.metrics import RootMeanSquaredError, SSIM
+    from ignite.metrics import SSIM
+    import torch
 
     torch.manual_seed(8)
     batch_size = 64

@@ -1,28 +1,56 @@
-# import warnings
-# from ignite.engine import Events
-#
-# from ..io import save_multichannel_grayscale_image
-# from .multimetric import get_multichannel_metric_names
-#
-#
-# def print_logs_handler(trainer, pbar, timer, evaluator):
-#     @trainer.on(Events.EPOCH_COMPLETED)
-#     def print_times(engine):
-#         pbar.log_message(
-#             f"Epoch {engine.state.epoch} done. Time per batch: {timer.value():.3f}[s]")
-#         timer.reset()
-#
-#     @trainer.on(Events.EPOCH_COMPLETED)
-#     def print_train_results():
-#         metric_results = evaluator.state.metrics
-#         message = 'train result:\n'
-#         for metric_key, metric_value in metric_results.items():
-#             message += f'\t{metric_key}:{round(metric_value, 4)}\n'
-#         pbar.log_message(message)
-#
-#     return print_times, print_train_results
-#
-#
+from typing import Any, Optional
+
+from ignite.engine import Engine
+from ignite.engine.events import Events
+from ignite.handlers import Checkpoint, DiskSaver, global_step_from_engine
+from ignite.handlers.early_stopping import EarlyStopping
+
+
+def setup_handlers(
+    trainer: Engine,
+    evaluator: Engine,
+    config: Any,
+    to_save_train: Optional[dict] = None,
+    to_save_eval: Optional[dict] = None,
+):
+    """Setup Ignite handlers."""
+
+    ckpt_handler_train = ckpt_handler_eval = None
+    # checkpointing
+    saver = DiskSaver(config.output_dir / "checkpoints", require_empty=False)
+    ckpt_handler_train = Checkpoint(
+        to_save_train,
+        saver,
+        filename_prefix=config.filename_prefix,
+        n_saved=config.n_saved,
+    )
+    trainer.add_event_handler(
+        Events.ITERATION_COMPLETED(every=config.save_every_iters),
+        ckpt_handler_train,
+    )
+    global_step_transform = None
+    if to_save_train.get("trainer", None) is not None:
+        global_step_transform = global_step_from_engine(to_save_train["trainer"])
+    ckpt_handler_eval = Checkpoint(
+        to_save_eval,
+        saver,
+        filename_prefix="best",
+        n_saved=config.n_saved,
+        global_step_transform=global_step_transform,
+        score_name="model_d_error",
+        score_function=Checkpoint.get_default_score_fn("errD", -1),
+    )
+    evaluator.add_event_handler(Events.EPOCH_COMPLETED(every=1), ckpt_handler_eval)
+    # early stopping
+    def score_fn(engine: Engine):
+        return -engine.state.metrics["errD"]
+
+    es = EarlyStopping(config.patience, score_fn, trainer)
+    evaluator.add_event_handler(Events.EPOCH_COMPLETED, es)
+    return ckpt_handler_train, ckpt_handler_eval
+
+
+
 # def save_example_factory(trainer, model, output_dir, checkpoint_every, device):
 #     @trainer.on(Events.EPOCH_COMPLETED(every=checkpoint_every))
 #     def save_example(engine):

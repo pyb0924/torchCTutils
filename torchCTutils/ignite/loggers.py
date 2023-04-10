@@ -1,36 +1,55 @@
-import torch
-import ignite
-import ignite.distributed as idist
+
+import logging
+from logging import Logger
+from typing import Any
+
+from ignite.engine import Engine
+
+from ignite.utils import setup_logger
 
 
-def log_basic_info(logger, config):
-    logger.info(f"Train on CIFAR10")
-    logger.info(f"- PyTorch version: {torch.__version__}")
-    logger.info(f"- Ignite version: {ignite.__version__}")
-    if torch.cuda.is_available():
-        # explicitly import cudnn as torch.backends.cudnn can not be pickled with hvd spawning procs
-        from torch.backends import cudnn
+def log_metrics(engine: Engine, tag: str) -> None:
+    """Log `engine.state.metrics` with given `engine` and `tag`.
 
-        logger.info(
-            f"- GPU Device: {torch.cuda.get_device_name(idist.get_local_rank())}"
-        )
-        logger.info(f"- CUDNN version: {cudnn.version()}")
-
-    logger.info("\n")
-    logger.info("Configuration:")
-    for key, value in config.items():
-        logger.info(f"\t{key}: {value}")
-    logger.info("\n")
-
-    if idist.get_world_size() > 1:
-        logger.info("\nDistributed setting:")
-        logger.info(f"\tbackend: {idist.backend()}")
-        logger.info(f"\tworld size: {idist.get_world_size()}")
-        logger.info("\n")
-
-
-def log_metrics(logger, epoch, elapsed, tag, metrics):
-    metrics_output = "\n".join([f"\t{k}: {v}" for k, v in metrics.items()])
-    logger.info(
-        f"\nEpoch {epoch} - Evaluation time (seconds): {elapsed:.2f} - {tag} metrics:\n {metrics_output}"
+    Parameters
+    ----------
+    engine
+        instance of `Engine` which metrics to log.
+    tag
+        a string to add at the start of output.
+    """
+    metrics_format = "{0} [{1}/{2}]: {3}".format(
+        tag, engine.state.epoch, engine.state.iteration, engine.state.metrics
     )
+    engine.logger.info(metrics_format)
+
+
+def setup_logging(config: Any) -> Logger:
+    """Setup logger with `ignite.utils.setup_logger()`.
+
+    Parameters
+    ----------
+    config
+        config object. config has to contain `verbose` and `output_dir` attribute.
+
+    Returns
+    -------
+    logger
+        an instance of `Logger`
+    """
+    green = "\033[32m"
+    reset = "\033[0m"
+    logger = setup_logger(
+        name=f"{green}[ignite]{reset}",
+        level=logging.DEBUG if config.debug else logging.INFO,
+        format="%(name)s: %(message)s",
+        filepath=config.output_dir / "training-info.log",
+    )
+    return logger
+
+def setup_clearml_logging(config, trainer, optimizers, evaluators):
+    """Setup Experiment Tracking logger from Ignite."""
+    logger = setup_clearml_logging(
+        trainer, optimizers, evaluators, config.log_every_iters
+    )
+    return logger

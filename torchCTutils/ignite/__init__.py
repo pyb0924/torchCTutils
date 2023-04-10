@@ -1,5 +1,5 @@
 from .handlers import *
-from .multimetric import *
+from .metrics import *
 from .clearML import *
 from .utils import *
 from .loggers import *
