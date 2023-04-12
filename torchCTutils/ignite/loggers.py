@@ -1,4 +1,3 @@
-
 import logging
 from logging import Logger
 from typing import Any
@@ -46,6 +45,7 @@ def setup_logging(config: Any) -> Logger:
         filepath=config.output_dir / "training-info.log",
     )
     return logger
+
 
 def setup_clearml_logging(config, trainer, optimizers, evaluators):
     """Setup Experiment Tracking logger from Ignite."""

@@ -1,6 +1,6 @@
 import torch
 
-from torchCTutils.model import UNet
+from torchCTutils.models import UNet
 
 
 def test_unet(size):

@@ -9,7 +9,6 @@ from torchvision.utils import save_image
 def save_multichannel_grayscale_image(
     tensor: Tensor, filenames: list[Union[str, Path]], normalize=False
 ):
-    
     if tensor.shape[1] != len(filenames):
         raise ValueError("Invalid Input!")
 

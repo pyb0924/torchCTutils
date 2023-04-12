@@ -1,15 +1,16 @@
 from torch import nn
-import torch.nn.functional as F
 
 
 class ConvWithLeakyReLU2d(nn.Sequential):
     """(convolution => LeakyReLU)"""
 
     def __init__(self, in_channels, out_channels):
+        super(ConvWithLeakyReLU2d, self).__init__()
         self.conv = nn.Conv2d(
             in_channels, out_channels, kernel_size=4, stride=2, padding=1
         )
         self.leaky_relu = nn.LeakyReLU(0.2)
+
 
 class PatchGANDiscriminator2d(nn.Sequential):
     def __init__(self, in_channels=3, num_blocks=3):
@@ -29,16 +30,17 @@ class PatchGANDiscriminator2d(nn.Sequential):
         )
         self.sigmoid = nn.Sigmoid()
 
-    
 
 class ConvWithLeakyReLU3d(nn.Sequential):
     """(convolution => LeakyReLU)"""
 
     def __init__(self, in_channels, out_channels):
+        super(ConvWithLeakyReLU3d, self).__init__()
         self.conv = nn.Conv3d(
             in_channels, out_channels, kernel_size=4, stride=2, padding=1
         )
         self.leaky_relu = nn.LeakyReLU(0.2)
+
 
 class PatchGANDiscriminator3d(nn.Sequential):
     def __init__(self, in_channels=3, num_blocks=3):

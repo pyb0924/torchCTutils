@@ -41,6 +41,7 @@ def setup_handlers(
         score_function=Checkpoint.get_default_score_fn("errD", -1),
     )
     evaluator.add_event_handler(Events.EPOCH_COMPLETED(every=1), ckpt_handler_eval)
+
     # early stopping
     def score_fn(engine: Engine):
         return -engine.state.metrics["errD"]
@@ -48,7 +49,6 @@ def setup_handlers(
     es = EarlyStopping(config.patience, score_fn, trainer)
     evaluator.add_event_handler(Events.EPOCH_COMPLETED, es)
     return ckpt_handler_train, ckpt_handler_eval
-
 
 
 # def save_example_factory(trainer, model, output_dir, checkpoint_every, device):

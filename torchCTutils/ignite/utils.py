@@ -3,6 +3,7 @@ from datetime import datetime
 from logging import Logger
 from pathlib import Path
 from typing import Any, Mapping, Optional, Union
+from munch import DefaultMunch
 import yaml
 
 import torch
@@ -26,19 +27,15 @@ def initialize_supervised_engines(model, optimizer, criterion, metrics, device):
     return trainer, train_evaluator, validation_evaluator
 
 
-def setup_parser():
-    with open("config.yaml", "r") as f:
+def read_config() -> DefaultMunch:
+    parser = ArgumentParser()
+    parser.add_argument("config", default="config-default.yaml", type=str)
+    args = parser.parse_args()
+
+    with open(args.config, "r") as f:
         config = yaml.safe_load(f.read())
 
-    parser = ArgumentParser()
-    parser.add_argument("--backend", default=None, type=str)
-    for k, v in config.items():
-        if isinstance(v, bool):
-            parser.add_argument(f"--{k}", action="store_true")
-        else:
-            parser.add_argument(f"--{k}", default=v, type=type(v))
-
-    return parser
+    return DefaultMunch.fromDict(config)
 
 
 def resume_from(
