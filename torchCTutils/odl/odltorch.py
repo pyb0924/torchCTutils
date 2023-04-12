@@ -58,7 +58,7 @@ def get_paired_CT_layer(
     return OperatorModule(fp), OperatorModule(fbp)
 
 
-def odlFP(x: Tensor, dim: Literal[2, 3] = 2) -> Tensor:
+def odl_FP(x: Tensor, dim: Literal[2, 3] = 2) -> Tensor:
     """Run forward projection(FP) implemented by ODL
 
     Args:
@@ -73,7 +73,7 @@ def odlFP(x: Tensor, dim: Literal[2, 3] = 2) -> Tensor:
     return OperatorFunction.apply(fp, x)
 
 
-def odlFBP(x: Tensor, size: int, dim: Literal[2, 3] = 2) -> Tensor:
+def odl_FBP(x: Tensor, size: int, dim: Literal[2, 3] = 2) -> Tensor:
     """Run filterd back projection(FBP) implemented by ODL
 
     Args:
