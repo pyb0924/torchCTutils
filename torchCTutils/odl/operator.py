@@ -4,9 +4,10 @@ import odl
 
 def get_FP_operator(
     size: int,
-    angles: Optional[int] = None,
-    mode: Literal["cone", "parallel"] = "parallel",
     dim: Literal[2, 3] = 2,
+    angles: Optional[int] = None,
+    detector_shape=None,
+    mode: Literal["cone", "parallel"] = "parallel",
     src_radius: Optional[float] = None,
     det_radius: Optional[float] = None,
 ) -> odl.Operator:
@@ -40,20 +41,25 @@ def get_FP_operator(
         raise ValueError("Undefined geometry mode! Availble mode: [cone, parallel]")
 
     if mode == "parallel":
-        geometry = odl.tomo.parallel_beam_geometry(space, num_angles=angles)
+        geometry = odl.tomo.parallel_beam_geometry(
+            space, num_angles=angles, det_shape=detector_shape
+        )
     else:
         if src_radius == None or det_radius == None:
             raise ValueError("Invalid cone beam parameters!")
-        geometry = odl.tomo.cone_beam_geometry(space, src_radius, det_radius)
+        geometry = odl.tomo.cone_beam_geometry(
+            space, src_radius, det_radius, num_angles=angles, det_shape=detector_shape
+        )
 
     return odl.tomo.RayTransform(space, geometry)
 
 
 def get_FBP_operator(
     size: int,
-    angles: Optional[int] = None,
-    mode: Literal["cone", "parallel"] = "parallel",
     dim: Literal[2, 3] = 2,
+    angles: Optional[int] = None,
+    detector_shape=None,
+    mode: Literal["cone", "parallel"] = "parallel",
     src_radius: Optional[float] = None,
     det_radius: Optional[float] = None,
 ) -> odl.Operator:
@@ -75,15 +81,18 @@ def get_FBP_operator(
     Returns:
         odl.Operator: FBP operator
     """
-    fp = get_FP_operator(size, angles, mode, dim, src_radius, det_radius)
+    fp = get_FP_operator(
+        size, dim, angles, detector_shape, mode, src_radius, det_radius
+    )
     return odl.tomo.fbp_op(fp)
 
 
 def get_paired_CT_operator(
     size: int,
-    angles: Optional[int] = None,
-    mode: Literal["cone", "parallel"] = "parallel",
     dim: Literal[2, 3] = 2,
+    angles: Optional[int] = None,
+    detector_shape=None,
+    mode: Literal["cone", "parallel"] = "parallel",
     src_radius: Optional[float] = None,
     det_radius: Optional[float] = None,
 ) -> tuple[odl.Operator, odl.Operator]:
@@ -105,5 +114,7 @@ def get_paired_CT_operator(
     Returns:
         Tuple[odl.Operator]: paired FP/FBP operator
     """
-    fp = get_FP_operator(size, angles, mode, dim, src_radius, det_radius)
+    fp = get_FP_operator(
+        size, dim, angles, detector_shape, mode, src_radius, det_radius
+    )
     return fp, odl.tomo.fbp_op(fp)

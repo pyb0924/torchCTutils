@@ -1,7 +1,9 @@
 from functools import reduce
+from typing import Literal
 
 import torch
 from torch import nn, Tensor
+import torch.nn.functional as F
 
 from ..odl import odl_FBP_layer
 
@@ -71,12 +73,26 @@ class FeatureConnectionC(nn.Module):
 class FeatureFBPConnection(nn.Module):
     """2D => Combination => (3D) => FP => Interpolation => FBP => 3D"""
 
-    def __init__(self, feature_shape, angles=60, output_size=64):
+    def __init__(
+        self,
+        size,
+        dim: Literal[2, 3] = 2,
+        angles=None,
+        detector_shape=None,
+        interpolate=True,
+    ):
         super().__init__()
-        self.output_size = output_size
-        _, channels, h, w = feature_shape
+        self.angles = angles if angles is not None else size
+        self.fbp = odl_FBP_layer(size, dim, self.angles, detector_shape)
+        self.interpolate = interpolate
 
-        self.fbp = odl_FBP_layer(output_size, angles, dim=3)
-
-    def forward(self, *features):
-        pass
+    def forward(self, *features: Tensor):
+        projections = torch.cat([f.unsqueeze(2) for f in features], dim=2)
+        if self.interpolate:
+            projections = F.interpolate(
+                projections,
+                size=(self.angles, projections.shape[-2], projections.shape[-1]),
+                mode="trilinear",
+                align_corners=True,
+            )
+        return self.fbp(projections)

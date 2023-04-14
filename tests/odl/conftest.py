@@ -7,6 +7,10 @@ import torch
 def angles() -> int:
     return 180
 
+@pytest.fixture(scope="session")
+def detectors() -> int:
+    return 128
+
 
 @pytest.fixture(scope="session")
 def space_2D(size) -> odl.DiscretizedSpace:

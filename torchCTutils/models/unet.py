@@ -44,8 +44,9 @@ class DoubleConv3d(nn.Sequential):
 
 
 class UNetEncoder2d(nn.Module):
-    def __init__(self, in_channels=3, features=[64, 128, 256, 512]):
+    def __init__(self, in_channels=3, features=[64, 128, 256, 512], hierarchical=True):
         super(UNetEncoder2d, self).__init__()
+        self.hierarchical = hierarchical
         self.downs = nn.ModuleList()
         self.pool = nn.MaxPool2d(kernel_size=2, stride=2)
         self.bottleneck = DoubleConv2d(features[-1], features[-1] * 2)
@@ -64,7 +65,10 @@ class UNetEncoder2d(nn.Module):
 
         x = self.bottleneck(x)
         features.append(x)
-        return features
+        if self.hierarchical:
+            return features
+        else:
+            return features[-1]
 
 
 class UNetDecoder2d(nn.Module):
@@ -111,8 +115,9 @@ class UNet2d(nn.Sequential):
 
 
 class UNetEncoder3d(nn.Module):
-    def __init__(self, in_channels=3, features=[64, 128, 256, 512]):
+    def __init__(self, in_channels=3, features=[64, 128, 256, 512],hierarchical=True):
         super(UNetEncoder3d, self).__init__()
+        self.hierarchical = hierarchical
         self.downs = nn.ModuleList()
         self.pool = nn.MaxPool3d(kernel_size=2, stride=2)
         self.bottleneck = DoubleConv3d(features[-1], features[-1] * 2)
@@ -131,7 +136,10 @@ class UNetEncoder3d(nn.Module):
 
         x = self.bottleneck(x)
         features.append(x)
-        return features
+        if self.hierarchical:
+            return features
+        else:
+            return features[-1]
 
 
 class UNetDecoder3d(nn.Module):
