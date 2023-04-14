@@ -1,18 +1,6 @@
 import torch
-from torch import nn
-
-
-class ConvBlock(nn.Sequential):
-    """(convolution => [BN] => ReLU)"""
-
-    def __init__(self, in_channels, out_channels, kernel_size=3):
-        super(ConvBlock, self).__init__()
-        self.conv = nn.Conv2d(
-            in_channels, out_channels, kernel_size, padding=(kernel_size - 1) // 2
-        )
-        self.norm = (nn.BatchNorm2d(out_channels),)
-        self.relu = (nn.ReLU(inplace=True),)
-
+from torch import nn, Tensor
+import torch.nn.functional as F
 
 class SelfAttention(nn.Module):
     def __init__(self, channels, size):

@@ -44,9 +44,8 @@ class DoubleConv3d(nn.Sequential):
 
 
 class UNetEncoder2d(nn.Module):
-    def __init__(self, in_channels=3, features=[64, 128, 256, 512], hierarchical=True):
+    def __init__(self, in_channels=1, features=[64, 128, 256, 512]):
         super(UNetEncoder2d, self).__init__()
-        self.hierarchical = hierarchical
         self.downs = nn.ModuleList()
         self.pool = nn.MaxPool2d(kernel_size=2, stride=2)
         self.bottleneck = DoubleConv2d(features[-1], features[-1] * 2)
@@ -65,11 +64,9 @@ class UNetEncoder2d(nn.Module):
 
         x = self.bottleneck(x)
         features.append(x)
-        if self.hierarchical:
-            return features
-        else:
-            return features[-1]
 
+        return features
+      
 
 class UNetDecoder2d(nn.Module):
     def __init__(self, out_channels=1, features=[64, 128, 256, 512]):
@@ -108,16 +105,15 @@ class UNetDecoder2d(nn.Module):
 
 
 class UNet2d(nn.Sequential):
-    def __init__(self, in_channels=3, out_channels=1, features=[64, 128, 256, 512]):
+    def __init__(self, in_channels=1, out_channels=1, features=[64, 128, 256, 512]):
         super(UNet2d, self).__init__()
         self.encoder = UNetEncoder2d(in_channels, features)
         self.decoder = UNetDecoder2d(out_channels, features)
 
 
 class UNetEncoder3d(nn.Module):
-    def __init__(self, in_channels=3, features=[64, 128, 256, 512],hierarchical=True):
+    def __init__(self, in_channels=1, features=[64, 128, 256, 512]):
         super(UNetEncoder3d, self).__init__()
-        self.hierarchical = hierarchical
         self.downs = nn.ModuleList()
         self.pool = nn.MaxPool3d(kernel_size=2, stride=2)
         self.bottleneck = DoubleConv3d(features[-1], features[-1] * 2)
@@ -136,10 +132,9 @@ class UNetEncoder3d(nn.Module):
 
         x = self.bottleneck(x)
         features.append(x)
-        if self.hierarchical:
-            return features
-        else:
-            return features[-1]
+       
+        return features
+   
 
 
 class UNetDecoder3d(nn.Module):
@@ -179,7 +174,7 @@ class UNetDecoder3d(nn.Module):
 
 
 class UNet3d(nn.Sequential):
-    def __init__(self, in_channels=3, out_channels=1, features=[64, 128, 256, 512]):
+    def __init__(self, in_channels=1, out_channels=1, features=[64, 128, 256, 512]):
         super(UNet3d, self).__init__()
         self.encoder = UNetEncoder3d(in_channels, features)
         self.decoder = UNetDecoder3d(out_channels, features)
