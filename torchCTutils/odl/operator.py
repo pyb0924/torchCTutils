@@ -33,9 +33,11 @@ def get_FP_operator(
         raise ValueError("Invalid dimension for FP!")
 
     if dim == 2:
-        space = odl.uniform_discr([-1, -1], [1, 1], [size, size])
+        space = odl.uniform_discr([-1, -1], [1, 1], [size, size], dtype="float32")
     else:
-        space = odl.uniform_discr([-1, -1, -1], [1, 1, 1], [size, size, size])
+        space = odl.uniform_discr(
+            [-1, -1, -1], [1, 1, 1], [size, size, size], dtype="float32"
+        )
 
     if mode != "parallel" and mode != "cone":
         raise ValueError("Undefined geometry mode! Availble mode: [cone, parallel]")
