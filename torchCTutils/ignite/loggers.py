@@ -45,11 +45,3 @@ def setup_logging(config: Any) -> Logger:
         filepath=config.output_dir / "training-info.log",
     )
     return logger
-
-
-def setup_clearml_logging(config, trainer, optimizers, evaluators):
-    """Setup Experiment Tracking logger from Ignite."""
-    logger = setup_clearml_logging(
-        trainer, optimizers, evaluators, config.log_every_iters
-    )
-    return logger
