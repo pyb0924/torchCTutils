@@ -9,17 +9,21 @@ class BaseDataModule(LightningDataModule):
         train_batch_size: int = 1,
         val_batch_size: int = 1,
         num_workers: int = 8,
+        *args,
+        **kwargs,
     ):
         super().__init__()
         self.dataset_cls = dataset_cls
         self.train_batch_size = train_batch_size
         self.val_batch_size = val_batch_size
         self.num_workers = num_workers
+        self.args = args
+        self.kwargs = kwargs
 
     def setup(self, stage=None):
         # Assign train/val datasets for use in dataloaders
         if stage == "fit" or stage is None:
-            dataset_full = self.dataset_cls()
+            dataset_full = self.dataset_cls(*self.args, **self.kwargs)
             train_length, val_length = int(len(dataset_full) * 0.8), int(
                 len(dataset_full) * 0.2
             )
@@ -30,7 +34,7 @@ class BaseDataModule(LightningDataModule):
 
         # Assign test dataset for use in dataloader(s)
         if stage == "test" or stage is None:
-            self.dataset_test = self.dataset_cls(mode="test")
+            self.dataset_test = self.dataset_cls(*self.args, **self.kwargs)
 
     def train_dataloader(self):
         return DataLoader(
