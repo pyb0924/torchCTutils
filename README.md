@@ -7,3 +7,4 @@ A library for my research
 - ODL
 - ASTRA Toolbox
 - clearML
+- wandb
