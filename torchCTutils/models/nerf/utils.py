@@ -1,7 +1,7 @@
 import torch
 
 BOX_OFFSETS = torch.tensor(
-    [[[i, j, k] for i in [0, 1] for j in [0, 1] for k in [0, 1]]], device="cuda"
+    [[[i, j, k] for i in [0, 1] for j in [0, 1] for k in [0, 1]]]
 )
 
 

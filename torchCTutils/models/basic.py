@@ -65,3 +65,4 @@ class BasicDecoder3d(nn.Sequential):
             self.append(nn.Upsample(scale_factor=2))
             self.append(ConvBlock3d(in_channels, feature))
             in_channels = feature
+        self.append(ConvBlock3d(in_channels, 1))

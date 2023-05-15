@@ -71,7 +71,7 @@ class FeatureConnectionC(nn.Module):
 
 
 class FeatureFBPConnection(nn.Module):
-    """2D => Combination => (3D) => FP => Interpolation => FBP => 3D"""
+    """2D => Combination => (3D) => Interpolation => FBP => 3D"""
 
     def __init__(
         self,
@@ -86,13 +86,21 @@ class FeatureFBPConnection(nn.Module):
         self.fbp = odl_FBP_layer(size, dim, self.angles, detector_shape)
         self.interpolate = interpolate
 
+    def circle_interpolate(self, features: tuple[Tensor]):
+        projections = torch.cat(
+            [f.unsqueeze(2) for f in features] + [features[0].unsqueeze(2)], dim=2
+        )
+        projections = F.interpolate(
+            projections,
+            size=(self.angles + 1, projections.shape[-2], projections.shape[-1]),
+            mode="trilinear",
+            align_corners=True,
+        )
+        return projections[:, :, :-1, :, :]
+
     def forward(self, *features: Tensor):
-        projections = torch.cat([f.unsqueeze(2) for f in features], dim=2)
         if self.interpolate:
-            projections = F.interpolate(
-                projections,
-                size=(self.angles, projections.shape[-2], projections.shape[-1]),
-                mode="trilinear",
-                align_corners=True,
-            )
-        return self.fbp(projections)
+            projections = self.circle_interpolate(features)
+        else:
+            projections = torch.cat([f.unsqueeze(2) for f in features], dim=2)
+        return self.fbp(projections)  # [batch_size, channels, size, size, size]
