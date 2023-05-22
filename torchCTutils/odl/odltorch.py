@@ -1,5 +1,5 @@
 from functools import partial
-from typing import Literal, Optional
+from typing import Literal, Optional, Union
 
 from odl.contrib.torch import OperatorFunction, OperatorModule
 from torch import Tensor
@@ -8,7 +8,7 @@ from .operator import get_FP_operator, get_FBP_operator, get_paired_CT_operator
 
 
 def odl_FP_layer(
-    size: int,
+    size: Union[int, list[int], tuple[int]],
     dim: Literal[2, 3] = 2,
     angles: Optional[int] = None,
     detector_shape=None,
@@ -28,7 +28,7 @@ def odl_FP_layer(
 
 
 def odl_FBP_layer(
-    size: int,
+    size: Union[int, list[int], tuple[int]],
     dim: Literal[2, 3] = 2,
     angles: Optional[int] = None,
     detector_shape=None,
@@ -48,7 +48,7 @@ def odl_FBP_layer(
 
 
 def get_paired_CT_layer(
-    size: int,
+    size: Union[int, list[int], tuple[int]],
     dim: Literal[2, 3] = 2,
     angles: Optional[int] = None,
     detector_shape=None,
@@ -82,14 +82,18 @@ def odl_FP(
     Returns:
         Tensor: Sinogram tensor in projection field.
     """
-    size = max(x.shape[-1], x.shape[-2])
+    if dim == 2:
+        size = [x.shape[-2], x.shape[-1]]
+    elif dim == 3:
+        size = [x.shape[-3], x.shape[-2], x.shape[-1]]
+
     fp = get_FP_operator(size, dim, angles, detector_shape)
     return OperatorFunction.apply(fp, x)
 
 
 def odl_FBP(
     x: Tensor,
-    size: int,
+    size: Union[int, list[int], tuple[int]],
     dim: Literal[2, 3] = 2,
     angles: Optional[int] = None,
     detector_shape=None,
@@ -98,7 +102,7 @@ def odl_FBP(
 
     Args:
         x (Tensor): Input sinogram to do FBP.
-        size (int): Image size to be reconstructed.
+        size (Union[int, list[int], tuple[int]]): Image size to be reconstructed.
         dim (Literal[2, 3], optional): 2D/3D operation. Defaults to 2.
 
     Returns:
@@ -109,7 +113,7 @@ def odl_FBP(
 
 
 def get_paired_CT_func(
-    size: int,
+    size: Union[int, list[int], tuple[int]],
     dim: Literal[2, 3] = 2,
     angles: Optional[int] = None,
     detector_shape=None,
@@ -117,7 +121,7 @@ def get_paired_CT_func(
     """Get paired FP/FBP PyTorch function.
 
     Args:
-        size (int): image size
+        size (Union[int, list[int], tuple[int]]): image size
         dim (Literal[2, 3], optional): 2D/3D operation. Defaults to 2.
 
     Returns:

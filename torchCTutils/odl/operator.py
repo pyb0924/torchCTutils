@@ -1,9 +1,9 @@
-from typing import Literal, Optional
+from typing import Literal, Optional, Union
 import odl
 
 
 def get_FP_operator(
-    size: int,
+    size: Union[int, list[int], tuple[int]],
     dim: Literal[2, 3] = 2,
     angles: Optional[int] = None,
     detector_shape=None,
@@ -14,7 +14,7 @@ def get_FP_operator(
     """Get forward projection(FP) operator from ODL
 
     Args:
-        size (int): Input image size
+        size (Union[int, list[int], tuple[int]]): Input image size
         angles (int, optional): Number of angles to do projection. Defaults to None.
         mode (Literal[&#39;cone&#39;, &#39;parallel&#39;], optional): Geometry type. Defaults to 'parallel'.
         dim (Literal[2, 3], optional): 2D/3D operation. Defaults to 2.
@@ -31,13 +31,14 @@ def get_FP_operator(
     """
     if dim != 2 and dim != 3:
         raise ValueError("Invalid dimension for FP!")
-
     if dim == 2:
-        space = odl.uniform_discr([-1, -1], [1, 1], [size, size], dtype="float32")
+        if type(size) == int:
+            size = [size, size]
+        space = odl.uniform_discr([-1, -1], [1, 1], size, dtype="float32")
     else:
-        space = odl.uniform_discr(
-            [-1, -1, -1], [1, 1, 1], [size, size, size], dtype="float32"
-        )
+        if type(size) == int:
+            size = [size, size, size]
+        space = odl.uniform_discr([-1, -1, -1], [1, 1, 1], size, dtype="float32")
 
     if mode != "parallel" and mode != "cone":
         raise ValueError("Undefined geometry mode! Availble mode: [cone, parallel]")
@@ -57,7 +58,7 @@ def get_FP_operator(
 
 
 def get_FBP_operator(
-    size: int,
+    size: Union[int, list[int], tuple[int]],
     dim: Literal[2, 3] = 2,
     angles: Optional[int] = None,
     detector_shape=None,
@@ -68,7 +69,7 @@ def get_FBP_operator(
     """Get filtered back projection(FP) operator from ODL
 
     Args:
-        size (int): Input image size
+        size (Union[int, list[int], tuple[int]]): Input image size
         angles (int, optional): Number of angles to do projection. Defaults to None.
         mode (Literal[&#39;cone&#39;, &#39;parallel&#39;], optional): Geometry type. Defaults to 'parallel'.
         dim (Literal[2, 3], optional): 2D/3D operation. Defaults to 2.
@@ -90,7 +91,7 @@ def get_FBP_operator(
 
 
 def get_paired_CT_operator(
-    size: int,
+    size: Union[int, list[int], tuple[int]],
     dim: Literal[2, 3] = 2,
     angles: Optional[int] = None,
     detector_shape=None,
@@ -101,7 +102,7 @@ def get_paired_CT_operator(
     """Get filtered back projection(FBP) operator from ODL
 
     Args:
-        size (int): Input image size
+        size (Union[int, list[int], tuple[int]]): Input image size
         angles (int, optional): Number of angles to do projection. Defaults to None.
         mode (Literal[&#39;cone&#39;, &#39;parallel&#39;], optional): Geometry type. Defaults to 'parallel'.
         dim (Literal[2, 3], optional): 2D/3D operation. Defaults to 2.
