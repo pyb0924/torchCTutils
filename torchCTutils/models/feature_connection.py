@@ -38,9 +38,9 @@ class FeatureConnectionA(nn.Module):
 class FeatureConnectionB(nn.Module):
     """2D => Conv-IN-ReLU(2D) => Expand => Conv-IN-ReLU(3D) => 3D"""
 
-    def __init__(self, input_channels, output_channels):
+    def __init__(self, input_channels, output_channels, output_depth):
         super(FeatureConnectionB, self).__init__()
-        self.output_channels = output_channels
+        self.output_depth = output_depth
         self.conv2d = nn.Sequential(
             nn.Conv2d(input_channels, output_channels, kernel_size=3, padding=1),
             nn.InstanceNorm2d(output_channels),
@@ -53,8 +53,7 @@ class FeatureConnectionB(nn.Module):
         )
 
     def forward(self, feature):
-        size = feature.shape[-1]
-        feature = self.conv2d(feature).unsqueeze(2).expand(-1, -1, size, -1, -1)
+        feature = self.conv2d(feature).unsqueeze(2).expand(-1, -1, self.output_depth, -1, -1)
         return self.conv3d(feature)
 
 

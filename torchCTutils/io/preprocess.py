@@ -1,8 +1,8 @@
-from datetime import datetime
 from typing import Literal
 from pathlib import Path
 
 import numpy as np
+import SimpleITK as sitk
 
 
 def get_normalized_array(
@@ -33,3 +33,50 @@ def get_normalized_array(
     elif method == "norm01":
         image = (image - np.min(image)) / (np.max(image) - np.min(image))
     return image
+
+
+def resample_by_spacing(
+    image,
+    new_spacing=[1.0, 1.0, 1.0],
+    resample_mode=sitk.sitkLinear,
+):
+    resize_factor = np.array(image.GetSpacing()) / new_spacing
+    new_size = (image.GetSize() * resize_factor).astype(int)
+    # print(new_size)
+    resampler = sitk.ResampleImageFilter()
+    resampler.SetReferenceImage(image)
+    resampler.SetSize(new_size.tolist())
+    resampler.SetOutputOrigin(image.GetOrigin())
+    resampler.SetOutputDirection(image.GetDirection())
+    resampler.SetOutputSpacing(new_spacing)
+    resampler.SetOutputPixelType(sitk.sitkFloat32)
+    resampler.SetInterpolator(resample_mode)
+    return resampler.Execute(image)
+
+
+def resample_by_size(
+    image,
+    new_size,
+    resample_mode=sitk.sitkLinear,
+):
+    resize_factor = np.array(image.GetSize()) / new_size
+    new_spacing = image.GetSpacing() * resize_factor
+    # print(new_size)
+    resampler = sitk.ResampleImageFilter()
+    resampler.SetReferenceImage(image)
+    resampler.SetSize(new_size)
+    resampler.SetOutputOrigin(image.GetOrigin())
+    resampler.SetOutputDirection(image.GetDirection())
+    resampler.SetOutputSpacing(new_spacing.tolist())
+    resampler.SetOutputPixelType(sitk.sitkFloat32)
+    resampler.SetInterpolator(resample_mode)
+    return resampler.Execute(image)
+
+
+def window_normalize(image, window_level, window_width):
+    window_filter = sitk.IntensityWindowingImageFilter()
+    window_filter.SetWindowMinimum(window_level - window_width // 2)
+    window_filter.SetWindowMaximum(window_level + window_width // 2)
+    window_filter.SetOutputMinimum(0.0)
+    window_filter.SetOutputMaximum(1.0)
+    return window_filter.Execute(image)
