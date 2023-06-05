@@ -3,8 +3,10 @@ A library for my research
 
 ## Dependencies
 - PyTorch
-- PyTorch-Ignite
+- torchvision
+- PyTorch Lightning
 - ODL
 - ASTRA Toolbox
-- clearML
-- wandb
+- numpy
+- matplotlib
+- SimpleITK
