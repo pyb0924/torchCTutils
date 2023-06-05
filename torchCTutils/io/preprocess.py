@@ -80,3 +80,20 @@ def window_normalize(image, window_level, window_width):
     window_filter.SetOutputMinimum(0.0)
     window_filter.SetOutputMaximum(1.0)
     return window_filter.Execute(image)
+
+
+def get_preprocessed_from_dcm(
+    path_str: str, size=[256, 256, 64], window_center=512, window_width=1536
+):
+    reader = sitk.ImageSeriesReader()
+    img_names = reader.GetGDCMSeriesFileNames(path_str)
+    img_names = sorted(list(img_names), key=lambda x: int(Path(x).stem))
+    # print(img_names)
+    reader.SetFileNames(img_names)
+    image = reader.Execute()
+    image = resample_by_size(image, size)
+    image = window_normalize(image, window_center, window_width)
+    return sitk.GetArrayFromImage(image)  # z, y, x
+
+
+

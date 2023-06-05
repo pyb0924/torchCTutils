@@ -53,7 +53,9 @@ class FeatureConnectionB(nn.Module):
         )
 
     def forward(self, feature):
-        feature = self.conv2d(feature).unsqueeze(2).expand(-1, -1, self.output_depth, -1, -1)
+        feature = (
+            self.conv2d(feature).unsqueeze(2).expand(-1, -1, self.output_depth, -1, -1)
+        )
         return self.conv3d(feature)
 
 
@@ -78,7 +80,7 @@ class FeatureFBPConnection(nn.Module):
         dim: Literal[2, 3] = 2,
         angles=None,
         detector_shape=None,
-        interpolate=True,
+        interpolate=False,
     ):
         super().__init__()
         self.angles = angles if angles is not None else size
@@ -102,4 +104,5 @@ class FeatureFBPConnection(nn.Module):
             projections = self.circle_interpolate(features)
         else:
             projections = torch.cat([f.unsqueeze(2) for f in features], dim=2)
-        return self.fbp(projections)  # [batch_size, channels, size, size, size]
+        return self.fbp(projections).permute(0, 1, 4, 2, 3)
+        # [batch_size, channels, size, size, size]
