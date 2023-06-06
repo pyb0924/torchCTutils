@@ -55,7 +55,6 @@ class ConvWithLeakyReLU3d(nn.Sequential):
         self.leaky_relu = nn.LeakyReLU(0.2, True)
 
 
-
 class PatchGANDiscriminator3d(nn.Sequential):
     def __init__(self, in_channels=1, num_blocks=3):
         super(PatchGANDiscriminator3d, self).__init__()

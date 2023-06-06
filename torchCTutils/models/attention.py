@@ -2,6 +2,7 @@ import torch
 from torch import nn, Tensor
 import torch.nn.functional as F
 
+
 class SelfAttention(nn.Module):
     def __init__(self, channels, size):
         super(SelfAttention, self).__init__()

@@ -21,7 +21,7 @@ def test_fpfbp_2D(phantom_2D, output_dir, size, angles, detectors):
         plt.savefig(output_dir / f"recon_2D_{mode}.png")
 
 
-def test_fpfbp_paired(phantom_2D, output_dir, size, angles,detectors):
+def test_fpfbp_paired(phantom_2D, output_dir, size, angles, detectors):
     for mode in ["parallel", "cone"]:
         assert mode == "parallel" or mode == "cone"
         fp, fbp = get_paired_CT_operator(size, 2, angles, detectors, mode, 60, 80)
@@ -37,7 +37,7 @@ def test_fpfbp_paired(phantom_2D, output_dir, size, angles,detectors):
         plt.savefig(output_dir / f"recon_2D_{mode}_paired.png")
 
 
-def test_fpfbp_3D(phantom_3D, output_dir, size, angles,detectors):
+def test_fpfbp_3D(phantom_3D, output_dir, size, angles, detectors):
     for mode in ["parallel", "cone"]:
         assert mode == "parallel" or mode == "cone"
         fp = get_FP_operator(size, 3, angles, detectors, mode, 60, 80)

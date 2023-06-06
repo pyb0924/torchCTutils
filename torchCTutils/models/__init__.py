@@ -19,7 +19,6 @@ from .unet import (
 
 from .patchgan import PatchGANDiscriminator2d, PatchGANDiscriminator3d
 
-from .nerf.nerf import NeRFModel
 
 from .feature_connection import (
     FeatureConnectionA,

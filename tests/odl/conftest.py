@@ -7,6 +7,7 @@ import torch
 def angles() -> int:
     return 180
 
+
 @pytest.fixture(scope="session")
 def detectors() -> int:
     return 128

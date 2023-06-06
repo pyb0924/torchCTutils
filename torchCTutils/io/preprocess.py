@@ -94,6 +94,3 @@ def get_preprocessed_from_dcm(
     image = resample_by_size(image, size)
     image = window_normalize(image, window_center, window_width)
     return sitk.GetArrayFromImage(image)  # z, y, x
-
-
-

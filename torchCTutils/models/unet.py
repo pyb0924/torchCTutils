@@ -66,7 +66,7 @@ class UNetEncoder2d(nn.Module):
         features.append(x)
 
         return features
-      
+
 
 class UNetDecoder2d(nn.Module):
     def __init__(self, out_channels=1, features=[64, 128, 256, 512]):
@@ -132,9 +132,8 @@ class UNetEncoder3d(nn.Module):
 
         x = self.bottleneck(x)
         features.append(x)
-       
+
         return features
-   
 
 
 class UNetDecoder3d(nn.Module):
