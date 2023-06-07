@@ -35,6 +35,14 @@ def get_normalized_array(
     return image
 
 
+def read_series_from_dcm(path_str):
+    reader = sitk.ImageSeriesReader()
+    img_names = reader.GetGDCMSeriesFileNames(path_str)
+    img_names = sorted(list(img_names), key=lambda x: int(Path(x).stem))
+    reader.SetFileNames(img_names)
+    return reader.Execute()
+
+
 def resample_by_spacing(
     image,
     new_spacing=[1.0, 1.0, 1.0],
@@ -73,7 +81,7 @@ def resample_by_size(
     return resampler.Execute(image)
 
 
-def window_normalize(image, window_level, window_width):
+def window_normalize(image, window_level=512, window_width=1536):
     window_filter = sitk.IntensityWindowingImageFilter()
     window_filter.SetWindowMinimum(window_level - window_width // 2)
     window_filter.SetWindowMaximum(window_level + window_width // 2)
@@ -82,15 +90,24 @@ def window_normalize(image, window_level, window_width):
     return window_filter.Execute(image)
 
 
-def get_preprocessed_from_dcm(
-    path_str: str, size=[256, 256, 64], window_center=512, window_width=1536
+def get_needle_mask_roi(
+    image, threshold=1500, use_opening=False, kernel_size=(2, 2, 2)
 ):
-    reader = sitk.ImageSeriesReader()
-    img_names = reader.GetGDCMSeriesFileNames(path_str)
-    img_names = sorted(list(img_names), key=lambda x: int(Path(x).stem))
-    # print(img_names)
-    reader.SetFileNames(img_names)
-    image = reader.Execute()
+    mask = sitk.BinaryThreshold(image, threshold, 5000)
+    if use_opening:
+        mask = sitk.BinaryMorphologicalOpening(mask, kernel_size)
+    statFilter = sitk.LabelStatisticsImageFilter()
+    statFilter.Execute(image, mask)
+    return (
+        sitk.GetArrayFromImage(mask),
+        np.array(statFilter.GetBoundingBox(1))
+    ) # x, y, z
+
+
+def get_preprocessed_from_dcm(
+    path_str: str, size=[256, 256, 64], window_level=512, window_width=1536
+):
+    image = read_series_from_dcm(path_str)
     image = resample_by_size(image, size)
-    image = window_normalize(image, window_center, window_width)
+    image = window_normalize(image, window_level, window_width)
     return sitk.GetArrayFromImage(image)  # z, y, x

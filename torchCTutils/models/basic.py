@@ -29,7 +29,7 @@ class ConvBlock3d(nn.Sequential):
 class BasicEncoder2d(nn.Sequential):
     def __init__(self, in_channels=1, features=[64, 128, 256, 512]):
         super(BasicEncoder2d, self).__init__()
-        for i, feature in enumerate(features):
+        for feature in features:
             self.append(ConvBlock2d(in_channels, feature))
             self.append(nn.MaxPool2d(2))
             in_channels = feature
@@ -61,7 +61,7 @@ class BasicDecoder3d(nn.Sequential):
     def __init__(self, in_channels=512, features=[64, 128, 256, 512]):
         super(BasicDecoder3d, self).__init__()
         features = reversed(features)
-        for i, feature in enumerate(features):
+        for feature in features:
             self.append(nn.Upsample(scale_factor=2))
             self.append(ConvBlock3d(in_channels, feature))
             in_channels = feature
