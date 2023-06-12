@@ -1,5 +1,6 @@
 from typing import Literal, Optional, Union
 import odl
+from .utils import get_parallel_beam_geometry, get_cone_beam_geometry
 
 
 def get_FP_operator(
@@ -10,6 +11,7 @@ def get_FP_operator(
     mode: Literal["cone", "parallel"] = "parallel",
     src_radius: Optional[float] = None,
     det_radius: Optional[float] = None,
+    nodes_on_bdry: Optional[bool] = False,
 ) -> odl.Operator:
     """Get forward projection(FP) operator from ODL
 
@@ -44,14 +46,12 @@ def get_FP_operator(
         raise ValueError("Undefined geometry mode! Availble mode: [cone, parallel]")
 
     if mode == "parallel":
-        geometry = odl.tomo.parallel_beam_geometry(
-            space, num_angles=angles, det_shape=detector_shape
+        geometry = get_parallel_beam_geometry(
+            space, angles, detector_shape, nodes_on_bdry
         )
     else:
-        if src_radius == None or det_radius == None:
-            raise ValueError("Invalid cone beam parameters!")
-        geometry = odl.tomo.cone_beam_geometry(
-            space, src_radius, det_radius, num_angles=angles, det_shape=detector_shape
+        geometry = get_cone_beam_geometry(
+            space, src_radius, det_radius, angles, detector_shape, nodes_on_bdry
         )
 
     return odl.tomo.RayTransform(space, geometry)

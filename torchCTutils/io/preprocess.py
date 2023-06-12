@@ -100,8 +100,8 @@ def get_needle_mask_roi(
     statFilter.Execute(image, mask)
     return (
         sitk.GetArrayFromImage(mask),
-        np.array(statFilter.GetBoundingBox(1))
-    ) # x, y, z
+        np.array(statFilter.GetBoundingBox(1)),
+    )  # x, y, z
 
 
 def get_preprocessed_from_dcm(
