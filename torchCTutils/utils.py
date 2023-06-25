@@ -4,7 +4,7 @@ from dataclasses import dataclass
 import yaml
 
 
-@dataclass
+@dataclass(frozen=True)
 class Config(object):
     _instance = None
 

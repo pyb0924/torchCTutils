@@ -1,5 +1,7 @@
 from typing import Literal, Optional, Union
+import numpy as np
 import odl
+
 from .utils import get_parallel_beam_geometry, get_cone_beam_geometry
 
 
@@ -121,3 +123,9 @@ def get_paired_CT_operator(
         size, dim, angles, detector_shape, mode, src_radius, det_radius
     )
     return fp, odl.tomo.fbp_op(fp)
+
+
+def get_projections_from_3dimage(image, **kwargs):
+    image = np.transpose(image, (1, 2, 0))
+    fp = get_FP_operator(image.shape, dim=3, **kwargs)
+    return fp(image).asarray()
