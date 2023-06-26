@@ -1,14 +1,12 @@
-import torch
-from torch import nn, Tensor
-import torch.nn.functional as F
+from torch import nn
 
 
 class SelfAttention(nn.Module):
-    def __init__(self, channels, size):
+    def __init__(self, channels, size, heads=4):
         super(SelfAttention, self).__init__()
         self.channels = channels
         self.size = size
-        self.mha = nn.MultiheadAttention(channels, 4, batch_first=True)
+        self.mha = nn.MultiheadAttention(channels, heads, batch_first=True)
         self.ln = nn.LayerNorm([channels])
         self.ff_self = nn.Sequential(
             nn.LayerNorm([channels]),

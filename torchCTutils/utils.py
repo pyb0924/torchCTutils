@@ -5,7 +5,7 @@ import yaml
 
 
 @dataclass(frozen=True)
-class Config(object):
+class Config:
     _instance = None
 
     def __new__(cls, *args, **kwargs):
@@ -15,6 +15,9 @@ class Config(object):
 
     def __init__(self, config_dict):
         self.__dict__.update(config_dict)
+
+    def get(self, key, default_value):
+        return self.__dict__.get(key, default_value)
 
 
 def read_config():

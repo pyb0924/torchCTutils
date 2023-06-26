@@ -1,3 +1,4 @@
+from json import encoder
 import torch
 
 from torchCTutils.models import (
@@ -7,6 +8,8 @@ from torchCTutils.models import (
     UNetDecoder2d,
     UNetEncoder3d,
     UNetDecoder3d,
+    AttentionUNetDecoder2d,
+    AttentionUNetDecoder3d,
 )
 
 
@@ -54,5 +57,29 @@ def test_fusion_unet3d(size):
     features1 = encoder1(data)
     features2 = encoder2(data)
     features = [torch.cat([f1, f2], dim=1) for f1, f2 in zip(features1, features2)]
+    output = decoder(features)
+    assert output.shape == data.shape
+
+
+def test_attention_unet2d(size):
+    encoder_features = [32 * 2**i for i in range(4)]
+    encoder = UNetEncoder2d(1, encoder_features)
+    decoder = AttentionUNetDecoder2d(1, encoder_features)
+    assert encoder is not None
+    assert decoder is not None
+    data = torch.rand((8, 1, size, size))
+    features = encoder(data)
+    output = decoder(features)
+    assert output.shape == data.shape
+
+
+def test_attention_unet3d(size):
+    encoder_features = [32 * 2**i for i in range(4)]
+    encoder = UNetEncoder3d(1, encoder_features)
+    decoder = AttentionUNetDecoder3d(1, encoder_features)
+    assert encoder is not None
+    assert decoder is not None
+    data = torch.rand((8, 1, size, size, size))
+    features = encoder(data)
     output = decoder(features)
     assert output.shape == data.shape
