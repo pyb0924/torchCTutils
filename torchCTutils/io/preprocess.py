@@ -1,4 +1,4 @@
-from typing import Literal
+from typing import Literal, Union
 from pathlib import Path
 
 import numpy as np
@@ -35,11 +35,14 @@ def get_normalized_array(
     return image
 
 
-def read_series_from_dcm(path_str):
+def read_series_from_dcm(path_str, read_info=False):
     reader = sitk.ImageSeriesReader()
     img_names = reader.GetGDCMSeriesFileNames(path_str)
     img_names = sorted(list(img_names), key=lambda x: int(Path(x).stem))
     reader.SetFileNames(img_names)
+    if read_info:
+        reader.MetaDataDictionaryArrayUpdateOn()
+        reader.LoadPrivateTagsOn()
     return reader.Execute()
 
 
@@ -66,6 +69,7 @@ def resample_by_size(
     image,
     new_size,
     resample_mode=sitk.sitkLinear,
+    output_type=sitk.sitkFloat32,
 ):
     resize_factor = np.array(image.GetSize()) / new_size
     new_spacing = image.GetSpacing() * resize_factor
@@ -76,17 +80,19 @@ def resample_by_size(
     resampler.SetOutputOrigin(image.GetOrigin())
     resampler.SetOutputDirection(image.GetDirection())
     resampler.SetOutputSpacing(new_spacing.tolist())
-    resampler.SetOutputPixelType(sitk.sitkFloat32)
+    resampler.SetOutputPixelType(output_type)
     resampler.SetInterpolator(resample_mode)
     return resampler.Execute(image)
 
 
-def window_normalize(image, window_level=512, window_width=1536):
+def window_normalize(
+    image, window_level=512, window_width=1536, min_value=0.0, max_value=1.0
+):
     window_filter = sitk.IntensityWindowingImageFilter()
     window_filter.SetWindowMinimum(window_level - window_width // 2)
     window_filter.SetWindowMaximum(window_level + window_width // 2)
-    window_filter.SetOutputMinimum(0.0)
-    window_filter.SetOutputMaximum(1.0)
+    window_filter.SetOutputMinimum(min_value)
+    window_filter.SetOutputMaximum(max_value)
     return window_filter.Execute(image)
 
 
