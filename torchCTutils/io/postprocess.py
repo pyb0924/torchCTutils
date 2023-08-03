@@ -8,7 +8,7 @@ import torch
 from torch import Tensor
 from torchvision.utils import save_image
 
-from .preprocess import resample_by_size, window_normalize
+from .preprocess import resample_by_size
 
 
 def save_multichannel_grayscale_image(

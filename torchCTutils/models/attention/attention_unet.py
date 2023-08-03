@@ -42,12 +42,10 @@ class AttentionGate2d(nn.Module):
 
         self.relu = nn.ReLU(inplace=True)
 
-    def forward(self, g, x):
+    def forward(self, x, g):
         g1 = self.W_g(g)
         x1 = self.W_x(x)
-        psi = self.relu(g1 + x1)
-        psi = self.psi(psi)
-
+        psi = self.psi(self.relu(g1 + x1))
         return x * psi
 
 
@@ -88,19 +86,17 @@ class AttentionGate3d(nn.Module):
 
         self.relu = nn.ReLU(inplace=True)
 
-    def forward(self, g, x):
+    def forward(self, x, g):
         g1 = self.W_g(g)
         x1 = self.W_x(x)
-        psi = self.relu(g1 + x1)
-        psi = self.psi(psi)
-
+        psi = self.psi(self.relu(g1 + x1))
         return x * psi
 
 
 class AttentionUNetDecoder2d(nn.Module):
     def __init__(self, out_channels=1, features=[64, 128, 256, 512]):
         super(AttentionUNetDecoder2d, self).__init__()
-        self.ups = nn.ModuleList()
+        self.ups = nn.ModuleLizst()
         self.attentions = nn.ModuleList()
         self.pool = nn.MaxPool2d(kernel_size=2, stride=2)
         # Up part of UNet

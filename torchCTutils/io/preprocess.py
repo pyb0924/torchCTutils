@@ -96,9 +96,22 @@ def window_normalize(
     return window_filter.Execute(image)
 
 
-def get_needle_mask_roi(
-    image, threshold=1500, use_opening=False, kernel_size=(2, 2, 2)
-):
+def get_bbox_from_mask(mask: np.array):
+    """Get bounding box from mask.
+
+    Args:
+        mask (np.array): mask array
+
+    Returns:
+        np.array: bounding box
+    """
+    mask = sitk.GetImageFromArray(mask)
+    statFilter = sitk.LabelStatisticsImageFilter()
+    statFilter.Execute(1, mask)
+    return np.array(statFilter.GetBoundingBox(1))
+
+
+def get_mask_and_bbox(image, threshold=1500, use_opening=False, kernel_size=(2, 2, 2)):
     mask = sitk.BinaryThreshold(image, threshold, 5000)
     if use_opening:
         mask = sitk.BinaryMorphologicalOpening(mask, kernel_size)

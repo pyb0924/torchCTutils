@@ -62,6 +62,7 @@ class BaseDataModule(LightningDataModule):
             self.dataset_train,
             batch_size=self.train_batch_size,
             num_workers=self.num_workers,
+            pin_memory=True,
         )
 
     def val_dataloader(self):
@@ -69,6 +70,7 @@ class BaseDataModule(LightningDataModule):
             self.dataset_val,
             batch_size=self.val_batch_size,
             num_workers=self.num_workers,
+            pin_memory=True,
         )
 
     def test_dataloader(self):
@@ -76,4 +78,5 @@ class BaseDataModule(LightningDataModule):
             self.dataset_test,
             batch_size=self.val_batch_size,
             num_workers=self.num_workers,
+            pin_memory=True,
         )

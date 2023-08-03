@@ -1,16 +1,13 @@
 from pathlib import Path
 from typing import Union
 
-import SimpleITK as sitk
-
 from torch import Tensor
 from lightning.pytorch.loggers import CSVLogger
 
 
-from torchCTutils.io import (
+from ..io import (
     save_dcm_from_output,
     read_series_from_dcm,
-    save_image_to_dcm,
 )
 
 
