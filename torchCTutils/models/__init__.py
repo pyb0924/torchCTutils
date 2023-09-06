@@ -8,6 +8,16 @@ from .basic import (
 )
 
 from .densenet import DenseBlock
+
+from .resnet import (
+    ResNet2d,
+    ResNet3d,
+    resnet34_2d,
+    resnet34_3d,
+    resnet50_2d,
+    resnet50_3d,
+)
+
 from .unet import (
     UNet2d,
     UNetEncoder2d,
