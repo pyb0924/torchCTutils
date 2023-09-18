@@ -1,6 +1,8 @@
-from typing import Callable, Optional, List, Union
+from typing import Callable, Optional, List, Union, Literal
 import torch
 from torch import nn, Tensor
+
+from .attention import CBAM2d, CBAM3d
 
 
 def conv3x3_2d(
@@ -58,6 +60,7 @@ class BasicBlock2d(nn.Module):
         base_width: int = 64,
         dilation: int = 1,
         norm_layer: Optional[Callable[..., nn.Module]] = None,
+        use_attention: Literal["CBAM"] = None,
     ) -> None:
         super().__init__()
         if norm_layer is None:
@@ -72,6 +75,11 @@ class BasicBlock2d(nn.Module):
         self.relu = nn.ReLU(inplace=True)
         self.conv2 = conv3x3_2d(planes, planes)
         self.bn2 = norm_layer(planes)
+
+        self.use_attention = use_attention
+        if use_attention == "CBAM":
+            self.attention = CBAM2d(planes)
+
         self.downsample = downsample
         self.stride = stride
 
@@ -84,6 +92,9 @@ class BasicBlock2d(nn.Module):
 
         out = self.conv2(out)
         out = self.bn2(out)
+
+        if self.use_attention == "CBAM":
+            out = self.attention(out)
 
         if self.downsample is not None:
             identity = self.downsample(x)
@@ -107,6 +118,7 @@ class Bottleneck2d(nn.Module):
         base_width: int = 64,
         dilation: int = 1,
         norm_layer: Optional[Callable[..., nn.Module]] = None,
+        use_attention: Literal["CBAM"] = None,
     ) -> None:
         super().__init__()
         if norm_layer is None:
@@ -120,6 +132,11 @@ class Bottleneck2d(nn.Module):
         self.conv3 = conv1x1_2d(width, planes * self.expansion)
         self.bn3 = norm_layer(planes * self.expansion)
         self.relu = nn.ReLU(inplace=True)
+
+        self.use_attention = use_attention
+        if use_attention == "CBAM":
+            self.attention = CBAM2d(planes)
+
         self.downsample = downsample
         self.stride = stride
 
@@ -136,6 +153,9 @@ class Bottleneck2d(nn.Module):
 
         out = self.conv3(out)
         out = self.bn3(out)
+
+        if self.use_attention == "CBAM":
+            out = self.attention(out)
 
         if self.downsample is not None:
             identity = self.downsample(x)
@@ -157,6 +177,7 @@ class ResNet2d(nn.Module):
         width_per_group: int = 64,
         replace_stride_with_dilation: Optional[List[bool]] = None,
         norm_layer: Optional[Callable[..., nn.Module]] = None,
+        use_attention: Literal["CBAM"] = None,
     ) -> None:
         super().__init__()
         if norm_layer is None:
@@ -165,6 +186,7 @@ class ResNet2d(nn.Module):
 
         self.inplanes = 64
         self.dilation = 1
+        self.use_attention = use_attention
         if replace_stride_with_dilation is None:
             # each element in the tuple indicates if we should replace
             # the 2x2 stride with a dilated convolution instead
@@ -243,6 +265,7 @@ class ResNet2d(nn.Module):
                 self.base_width,
                 previous_dilation,
                 norm_layer,
+                use_attention=self.use_attention,
             )
         )
         self.inplanes = planes * block.expansion
@@ -255,6 +278,7 @@ class ResNet2d(nn.Module):
                     base_width=self.base_width,
                     dilation=self.dilation,
                     norm_layer=norm_layer,
+                    use_attention=self.use_attention,
                 )
             )
 
@@ -295,6 +319,7 @@ class BasicBlock3d(nn.Module):
         base_width: int = 64,
         dilation: int = 1,
         norm_layer: Optional[Callable[..., nn.Module]] = None,
+        use_attention: Literal["CBAM"] = None,
     ) -> None:
         super().__init__()
         if norm_layer is None:
@@ -309,6 +334,11 @@ class BasicBlock3d(nn.Module):
         self.relu = nn.ReLU(inplace=True)
         self.conv2 = conv3x3_3d(planes, planes)
         self.bn2 = norm_layer(planes)
+
+        self.use_attention = use_attention
+        if use_attention == "CBAM":
+            self.attention = CBAM3d(planes)
+
         self.downsample = downsample
         self.stride = stride
 
@@ -321,6 +351,9 @@ class BasicBlock3d(nn.Module):
 
         out = self.conv2(out)
         out = self.bn2(out)
+
+        if self.use_attention == "CBAM":
+            out = self.attention(out)
 
         if self.downsample is not None:
             identity = self.downsample(x)
@@ -344,6 +377,7 @@ class Bottleneck3d(nn.Module):
         base_width: int = 64,
         dilation: int = 1,
         norm_layer: Optional[Callable[..., nn.Module]] = None,
+        use_attention: Literal["CBAM"] = None,
     ) -> None:
         super().__init__()
         if norm_layer is None:
@@ -357,6 +391,11 @@ class Bottleneck3d(nn.Module):
         self.conv3 = conv1x1_3d(width, planes * self.expansion)
         self.bn3 = norm_layer(planes * self.expansion)
         self.relu = nn.ReLU(inplace=True)
+
+        self.use_attention = use_attention
+        if use_attention == "CBAM":
+            self.attention = CBAM3d(planes)
+
         self.downsample = downsample
         self.stride = stride
 
@@ -373,6 +412,9 @@ class Bottleneck3d(nn.Module):
 
         out = self.conv3(out)
         out = self.bn3(out)
+
+        if self.use_attention == "CBAM":
+            out = self.attention(out)
 
         if self.downsample is not None:
             identity = self.downsample(x)
@@ -394,6 +436,7 @@ class ResNet3d(nn.Module):
         width_per_group: int = 64,
         replace_stride_with_dilation: Optional[List[bool]] = None,
         norm_layer: Optional[Callable[..., nn.Module]] = None,
+        use_attention: Literal["CBAM"] = None,
     ) -> None:
         super().__init__()
         if norm_layer is None:
@@ -402,6 +445,7 @@ class ResNet3d(nn.Module):
 
         self.inplanes = 64
         self.dilation = 1
+        self.use_attention = use_attention
         if replace_stride_with_dilation is None:
             # each element in the tuple indicates if we should replace
             # the 2x2 stride with a dilated convolution instead
@@ -480,6 +524,7 @@ class ResNet3d(nn.Module):
                 self.base_width,
                 previous_dilation,
                 norm_layer,
+                use_attention=self.use_attention,
             )
         )
         self.inplanes = planes * block.expansion
@@ -492,6 +537,7 @@ class ResNet3d(nn.Module):
                     base_width=self.base_width,
                     dilation=self.dilation,
                     norm_layer=norm_layer,
+                    use_attention=self.use_attention,
                 )
             )
 

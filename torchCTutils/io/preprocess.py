@@ -97,18 +97,11 @@ def window_normalize(
 
 
 def get_bbox_from_mask(mask: np.array):
-    """Get bounding box from mask.
-
-    Args:
-        mask (np.array): mask array
-
-    Returns:
-        np.array: bounding box
-    """
-    mask = sitk.GetImageFromArray(mask)
-    statFilter = sitk.LabelStatisticsImageFilter()
-    statFilter.Execute(1, mask)
-    return np.array(statFilter.GetBoundingBox(1))
+    nonzero_indexs=np.nonzero(mask)
+    result=[]
+    for index in nonzero_indexs:
+        result.append([np.min(index),np.max(index)])
+    return np.array(result)
 
 
 def get_mask_and_bbox(image, threshold=1500, use_opening=False, kernel_size=(2, 2, 2)):

@@ -93,83 +93,43 @@ class Flatten(nn.Module):
 
 
 class ChannelGate2d(nn.Module):
-    def __init__(self, gate_channels, reduction_ratio=16, pool_types=["avg", "max"]):
+    def __init__(self, in_planes, ratio=16):
         super(ChannelGate2d, self).__init__()
-        self.gate_channels = gate_channels
-        self.mlp = nn.Sequential(
-            Flatten(),
-            nn.Linear(gate_channels, gate_channels // reduction_ratio),
+        self.avg_pool = nn.AdaptiveAvgPool2d(1)
+        self.max_pool = nn.AdaptiveMaxPool2d(1)
+
+        self.fc = nn.Sequential(
+            nn.Conv2d(in_planes, in_planes // ratio, 1, bias=False),
             nn.ReLU(),
-            nn.Linear(gate_channels // reduction_ratio, gate_channels),
+            nn.Conv2d(in_planes // ratio, in_planes, 1, bias=False),
         )
-        self.pool_types = pool_types
+        self.sigmoid = nn.Sigmoid()
 
     def forward(self, x):
-        channel_att_sum = None
-        for pool_type in self.pool_types:
-            if pool_type == "avg":
-                avg_pool = F.avg_pool2d(
-                    x, (x.size(2), x.size(3)), stride=(x.size(2), x.size(3))
-                )
-                channel_att_raw = self.mlp(avg_pool)
-            elif pool_type == "max":
-                max_pool = F.max_pool2d(
-                    x, (x.size(2), x.size(3)), stride=(x.size(2), x.size(3))
-                )
-                channel_att_raw = self.mlp(max_pool)
-
-            if channel_att_sum is None:
-                channel_att_sum = channel_att_raw
-            else:
-                channel_att_sum = channel_att_sum + channel_att_raw
-
-        scale = F.sigmoid(channel_att_sum).unsqueeze(2).unsqueeze(3).expand_as(x)
-        return x * scale
+        avg_out = self.fc(self.avg_pool(x))
+        max_out = self.fc(self.max_pool(x))
+        out = avg_out + max_out
+        return self.sigmoid(out)
 
 
 class ChannelGate3d(nn.Module):
-    def __init__(self, gate_channels, reduction_ratio=16, pool_types=["avg", "max"]):
+    def __init__(self, in_planes, ratio=16):
         super(ChannelGate3d, self).__init__()
-        self.gate_channels = gate_channels
-        self.mlp = nn.Sequential(
-            Flatten(),
-            nn.Linear(gate_channels, gate_channels // reduction_ratio),
+        self.avg_pool = nn.AdaptiveAvgPool3d(1)
+        self.max_pool = nn.AdaptiveMaxPool3d(1)
+
+        self.fc = nn.Sequential(
+            nn.Conv3d(in_planes, in_planes // ratio, 1, bias=False),
             nn.ReLU(),
-            nn.Linear(gate_channels // reduction_ratio, gate_channels),
+            nn.Conv3d(in_planes // ratio, in_planes, 1, bias=False),
         )
-        self.pool_types = pool_types
+        self.sigmoid = nn.Sigmoid()
 
     def forward(self, x):
-        channel_att_sum = None
-        for pool_type in self.pool_types:
-            if pool_type == "avg":
-                avg_pool = F.avg_pool3d(
-                    x,
-                    (x.size(2), x.size(3), x.size(4)),
-                    stride=(x.size(2), x.size(3), x.size(4)),
-                )
-                channel_att_raw = self.mlp(avg_pool)
-            elif pool_type == "max":
-                max_pool = F.max_pool3d(
-                    x,
-                    (x.size(2), x.size(3), x.size(4)),
-                    stride=(x.size(2), x.size(3), x.size(4)),
-                )
-                channel_att_raw = self.mlp(max_pool)
-
-            if channel_att_sum is None:
-                channel_att_sum = channel_att_raw
-            else:
-                channel_att_sum = channel_att_sum + channel_att_raw
-
-        scale = (
-            F.sigmoid(channel_att_sum)
-            .unsqueeze(2)
-            .unsqueeze(3)
-            .unsqueeze(4)
-            .expand_as(x)
-        )
-        return x * scale
+        avg_out = self.fc(self.avg_pool(x))
+        max_out = self.fc(self.max_pool(x))
+        out = avg_out + max_out
+        return self.sigmoid(out)
 
 
 class ChannelPool(nn.Module):
@@ -185,13 +145,13 @@ class SpatialGate2d(nn.Module):
         kernel_size = 7
         self.compress = ChannelPool()
         self.spatial = BasicConv2d(
-            2, 1, kernel_size, stride=1, padding=(kernel_size - 1) // 2, relu=False
+            2, 1, kernel_size, padding=kernel_size // 2, relu=False
         )
 
     def forward(self, x):
         x_compress = self.compress(x)
         x_out = self.spatial(x_compress)
-        scale = F.sigmoid(x_out)  # broadcasting
+        scale = torch.sigmoid(x_out)  # broadcasting
         return x * scale
 
 
@@ -201,13 +161,13 @@ class SpatialGate3d(nn.Module):
         kernel_size = 7
         self.compress = ChannelPool()
         self.spatial = BasicConv3d(
-            2, 1, kernel_size, stride=1, padding=(kernel_size - 1) // 2, relu=False
+            2, 1, kernel_size, padding=kernel_size // 2, relu=False
         )
 
     def forward(self, x):
         x_compress = self.compress(x)
         x_out = self.spatial(x_compress)
-        scale = F.sigmoid(x_out)  # broadcasting
+        scale = torch.sigmoid(x_out)  # broadcasting
         return x * scale
 
 
@@ -216,11 +176,10 @@ class CBAM2d(nn.Module):
         self,
         gate_channels,
         reduction_ratio=16,
-        pool_types=["avg", "max"],
         no_spatial=False,
     ):
         super(CBAM2d, self).__init__()
-        self.ChannelGate = ChannelGate2d(gate_channels, reduction_ratio, pool_types)
+        self.ChannelGate = ChannelGate2d(gate_channels, reduction_ratio)
         self.no_spatial = no_spatial
         if not no_spatial:
             self.SpatialGate = SpatialGate2d()
@@ -237,11 +196,10 @@ class CBAM3d(nn.Module):
         self,
         gate_channels,
         reduction_ratio=16,
-        pool_types=["avg", "max"],
         no_spatial=False,
     ):
         super(CBAM3d, self).__init__()
-        self.ChannelGate = ChannelGate3d(gate_channels, reduction_ratio, pool_types)
+        self.ChannelGate = ChannelGate3d(gate_channels, reduction_ratio)
         self.no_spatial = no_spatial
         if not no_spatial:
             self.SpatialGate = SpatialGate3d()
