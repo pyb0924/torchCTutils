@@ -54,11 +54,12 @@ def save_dcm_from_output(
     output_path: Union[str, Path],
     min_value=0,
     max_value=2048,
+    file_name="output",
 ):
     output_image = sitk.GetImageFromArray(output * (max_value - min_value) + min_value)
     output_image = resample_by_size(
         output_image, ds.GetSize(), output_type=sitk.sitkUInt16
     )
     output_image.CopyInformation(ds)
-    sitk.WriteImage(output_image, str(output_path / "output.dcm"))
+    sitk.WriteImage(output_image, str(output_path / f"{file_name}.dcm"))
     # save_image_to_dcm_series(output_image, str(output_path))

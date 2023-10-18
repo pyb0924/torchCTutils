@@ -100,7 +100,7 @@ def get_bbox_from_mask(mask: np.array):
     nonzero_indexs = np.nonzero(mask)
     result = []
     for index in nonzero_indexs:
-        result.append([np.min(index), np.max(index)])
+        result.extend([np.min(index), np.max(index)])
     return np.array(result)
 
 
