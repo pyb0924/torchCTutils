@@ -52,7 +52,7 @@ def save_dcm_from_output(
     output: np.array,
     ds: sitk.Image,
     output_path: Union[str, Path],
-    min_value=0,
+    min_value=-1024,
     max_value=2048,
     file_name="output",
 ):
