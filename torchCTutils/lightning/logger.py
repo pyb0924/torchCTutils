@@ -12,6 +12,10 @@ from ..io import (
 
 
 class DCMLogger(CSVLogger):
+    def __init__(self, normalize=True, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.normalize = normalize
+
     def log_dcm(
         self,
         real: Tensor,
@@ -26,18 +30,18 @@ class DCMLogger(CSVLogger):
         fake_dir.mkdir(parents=True, exist_ok=True)
 
         raw_path = self.get_raw_path(path)
-        label = read_series_from_dcm(str(raw_path), read_info=True)
 
-        # save_image_to_dcm(label, str(real_dir / "label.dcm"))
         save_dcm_from_output(
             real.squeeze(0).cpu().numpy(),
-            ds=label,
+            ds_path=raw_path,
             output_path=real_dir,
+            normalize=self.normalize,
         )
         save_dcm_from_output(
             fake.squeeze(0).cpu().numpy(),
-            ds=label,
+            ds_path=raw_path,
             output_path=fake_dir,
+            normalize=self.normalize,
         )
 
     def get_raw_path(self, path: Union[str, Path]):
