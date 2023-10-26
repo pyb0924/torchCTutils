@@ -47,7 +47,7 @@ def save_dcm_from_output(
         output = output * (max_value - min_value) + min_value
 
     output = np.clip(output, min_value, max_value)
-    
+
     ds = dcmread(Path(ds_path) / "1.dcm")
     output_size = (ds.Rows, ds.Columns, int(ds.ImagesInAcquisition))
     output = (output - int(ds.RescaleIntercept)) / int(ds.RescaleSlope)
@@ -57,8 +57,9 @@ def save_dcm_from_output(
         output_image, output_size, output_type=sitk.sitkUInt16
     )
     output = sitk.GetArrayFromImage(output_image)
-    
-    for i, slice_path in enumerate(Path(ds_path).glob("*.dcm")):
+
+    ds_list = sorted(list(Path(ds_path).glob("*")), key=lambda x: int(x.stem))
+    for i, slice_path in enumerate(ds_list):
         ds = dcmread(slice_path)
         ds.PixelData = output[i].tobytes()
         ds.save_as(Path(output_path) / f"{i+1}.dcm")
