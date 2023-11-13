@@ -1,4 +1,3 @@
-from json import encoder
 import torch
 
 from torchCTutils.models import (

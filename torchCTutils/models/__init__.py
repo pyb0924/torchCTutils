@@ -27,6 +27,8 @@ from .unet import (
     UNetDecoder3d,
 )
 
+from .vgg import VGGEncoder2d, VGGEncoder3d, VGGDecoder2d, VGGDecoder3d, VGG2d, VGG3d
+
 from .patchgan import PatchGANDiscriminator2d, PatchGANDiscriminator3d
 
 

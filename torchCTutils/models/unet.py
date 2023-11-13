@@ -72,7 +72,6 @@ class UNetDecoder2d(nn.Module):
     def __init__(self, out_channels=1, features=[64, 128, 256, 512]):
         super(UNetDecoder2d, self).__init__()
         self.ups = nn.ModuleList()
-        self.pool = nn.MaxPool2d(kernel_size=2, stride=2)
         # Up part of UNet
         for feature in reversed(features):
             self.ups.append(
@@ -140,7 +139,6 @@ class UNetDecoder3d(nn.Module):
     def __init__(self, out_channels=1, features=[64, 128, 256, 512]):
         super(UNetDecoder3d, self).__init__()
         self.ups = nn.ModuleList()
-        self.pool = nn.MaxPool3d(kernel_size=2, stride=2)
         # Up part of UNet
         for feature in reversed(features):
             self.ups.append(

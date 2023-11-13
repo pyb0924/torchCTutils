@@ -36,16 +36,15 @@ class BasicEncoder2d(nn.Sequential):
 
 
 class BasicDecoder2d(nn.Sequential):
-    def __init__(self, out_channels=1, features=[64, 128, 256, 512]):
+    def __init__(self, in_channels=512, features=[64, 128, 256, 512]):
         super(BasicDecoder2d, self).__init__()
-        in_channels = features.pop()
+        features = reversed(features)
         for feature in features:
-            self.append(nn.Upsample(scale_factor=2))
-            self.append(ConvBlock2d(in_channels, feature))
+            self.append(
+                nn.ConvTranspose2d(in_channels, feature, kernel_size=2, stride=2)
+            )
             in_channels = feature
-
-        self.append(nn.Upsample(scale_factor=2))
-        self.append(ConvBlock2d(in_channels, out_channels))
+        self.append(ConvBlock2d(in_channels, 1))
 
 
 class BasicEncoder3d(nn.Sequential):
@@ -62,7 +61,8 @@ class BasicDecoder3d(nn.Sequential):
         super(BasicDecoder3d, self).__init__()
         features = reversed(features)
         for feature in features:
-            self.append(nn.Upsample(scale_factor=2))
-            self.append(ConvBlock3d(in_channels, feature))
+            self.append(
+                nn.ConvTranspose3d(in_channels, feature, kernel_size=2, stride=2)
+            )
+            self.append(ConvBlock3d(feature, feature))
             in_channels = feature
-        self.append(ConvBlock3d(in_channels, 1))
