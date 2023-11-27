@@ -1,26 +1,10 @@
 from argparse import ArgumentParser
-from dataclasses import dataclass
 
+from ml_collections import FrozenConfigDict
 import yaml
 
 
-@dataclass(frozen=True)
-class Config:
-    _instance = None
-
-    def __new__(cls, *args, **kwargs):
-        if cls._instance is None:
-            cls._instance = object.__new__(cls)
-        return cls._instance
-
-    def __init__(self, config_dict):
-        self.__dict__.update(config_dict)
-
-    def get(self, key, default_value):
-        return self.__dict__.get(key, default_value)
-
-
-def read_config():
+def read_config_from_yaml():
     parser = ArgumentParser()
     parser.add_argument("config", default="config-default.yaml", type=str)
     args = parser.parse_args()
@@ -28,4 +12,4 @@ def read_config():
     with open(args.config, "r") as f:
         config = yaml.safe_load(f.read())
 
-    return Config(config)
+    return FrozenConfigDict(config)

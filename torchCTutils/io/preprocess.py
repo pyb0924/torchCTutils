@@ -3,11 +3,13 @@ from pathlib import Path
 
 import numpy as np
 import SimpleITK as sitk
+import cv2
+from pydicom import dcmread, dcmwrite
 
 
 def get_normalized_array(
     path: Path, method: Literal["norm01", "norm", "norm1"] = "norm01"
-) -> np.array:
+) -> np.ndarray:
     """Get normalized array from file path.
 
     Args:
@@ -44,6 +46,19 @@ def read_series_from_dcm(path_str, read_info=False):
         reader.MetaDataDictionaryArrayUpdateOn()
         reader.LoadPrivateTagsOn()
     return reader.Execute()
+
+
+def dcmresize(input_path, output_path, size=256):
+    ds = dcmread(input_path)
+    src_size = ds.Rows
+    print(ds.Rows, ds.Columns)
+    img = ds.pixel_array
+    res = cv2.resize(img, (256, 256))
+    ds.PixelData = res.tobytes()
+    ds.Rows = ds.Columns = size
+    ds.PixelSpacing = list(map(lambda x: x * src_size / size, ds.PixelSpacing))
+    ds.SmallestImagePixelValue, ds.LargestImagePixelValue = np.min(res), np.max(res)
+    dcmwrite(output_path, ds)
 
 
 def resample_by_spacing(
@@ -96,7 +111,7 @@ def window_normalize(
     return window_filter.Execute(image)
 
 
-def get_bbox_from_mask(mask: np.array):
+def get_bbox_from_mask(mask: np.ndarray):
     nonzero_indexs = np.nonzero(mask)
     result = []
     for index in nonzero_indexs:
