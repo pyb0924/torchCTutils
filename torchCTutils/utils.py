@@ -1,6 +1,6 @@
 from argparse import ArgumentParser
 
-from ml_collections import FrozenConfigDict
+from ml_collections import ConfigDict
 import yaml
 
 
@@ -12,4 +12,4 @@ def read_config_from_yaml():
     with open(args.config, "r") as f:
         config = yaml.safe_load(f.read())
 
-    return FrozenConfigDict(config)
+    return ConfigDict(config)

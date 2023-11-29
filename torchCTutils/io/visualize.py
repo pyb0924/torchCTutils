@@ -1,25 +1,35 @@
 import matplotlib.pyplot as plt
+from .preprocess import window_to_data_range
 
 
-def show_gray_image(image, ax, vmin=None, vmax=None):
+def show_gray_image(image, ax, vmin=None, vmax=None, wl=None, ww=None):
+    if wl is not None and ww is not None:
+        vmin, vmax = window_to_data_range(wl, ww)
     ax.imshow(image, vmin=vmin, vmax=vmax, cmap="gray")
     ax.axis("off")
 
 
-def data_range_to_window(vmin, vmax):
-    return (vmax + vmin) / 2, vmax - vmin
+def compare_2d_image(image1, image2, wl=None, ww=None, *args, **kwargs):
+    vmin = vmax = None
+    if wl is not None and ww is not None:
+        vmin, vmax = window_to_data_range(wl, ww)
+    fig, axes = plt.subplots(1, 3, *args, **kwargs)
+    show_gray_image(image1, axes[0], vmin, vmax)
+    show_gray_image(image2, axes[1], vmin, vmax)
+    residual = image2 - image1
+    show_gray_image(residual, axes[2], vmin, vmax)
+    return fig, axes
 
 
-def window_to_data_range(wl, ww):
-    return wl - ww / 2, wl + ww / 2
-
-
-def visualize_3d_image(image, z_slice=1, *args, **kwargs):
+def visualize_3d_image(image, z_slice=1, wl=None, ww=None, *args, **kwargs):
     fig, axes = plt.subplots(*args, **kwargs)
-    # print(nodule_array[0].shape)
+    vmin = vmax = None
+    if wl is not None and ww is not None:
+        vmin, vmax = window_to_data_range(wl, ww)
+
     for i, ax in enumerate(axes.ravel()):
         if i < image.shape[0] // z_slice:
-            show_gray_image(image[i * z_slice, :, :], ax)
+            show_gray_image(image[i * z_slice, :, :], ax, vmin, vmax)
             ax.axis("off")
 
     return fig, axes
@@ -42,3 +52,4 @@ def compare_3d_image(image1, image2, z_slice=1, wl=None, ww=None, *args, **kwarg
                 residual = image2[j * z_slice, :, :] - image1[j * z_slice, :, :]
                 show_gray_image(residual, ax, vmin, vmax)
             ax.axis("off")
+    return fig, axes

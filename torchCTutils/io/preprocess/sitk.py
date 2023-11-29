@@ -1,43 +1,10 @@
-from typing import Literal, Union
 from pathlib import Path
 
 import numpy as np
 import SimpleITK as sitk
-import cv2
-from pydicom import dcmread, dcmwrite
 
 
-def get_normalized_array(
-    path: Path, method: Literal["norm01", "norm", "norm1"] = "norm01"
-) -> np.ndarray:
-    """Get normalized array from file path.
-
-    Args:
-        path (Path): _description_
-        method (Literal['norm', 'norm1', 'norm01'], optional): Method of Normalization. Defaults to 'norm01'.
-            Valid options:
-                'norm' : (X - mean(X)) / var(x)
-                'norm1' : 2 * (X - min(X)) / (max(X) - min(X)) - 1
-                'norm01': (X - min(X)) / (max(X) - min(X))
-
-    Returns:
-        np.array: normalized Numpy array
-    """
-    methods = ["norm01", "norm", "norm1"]
-    if method not in methods:
-        raise ValueError(f"Invalid method! Availble options: {methods}")
-
-    image = np.load(path)
-    if method == "norm":
-        image = (image - np.mean(image)) / np.std(image)
-    elif method == "norm1":
-        image = 2 * (image - np.min(image)) / (np.max(image) - np.min(image)) - 1
-    elif method == "norm01":
-        image = (image - np.min(image)) / (np.max(image) - np.min(image))
-    return image
-
-
-def read_series_from_dcm(path_str, read_info=False):
+def sitk_read_series_from_dcm(path_str, read_info=False):
     reader = sitk.ImageSeriesReader()
     img_names = reader.GetGDCMSeriesFileNames(path_str)
     img_names = sorted(list(img_names), key=lambda x: int(Path(x).stem))
@@ -48,20 +15,7 @@ def read_series_from_dcm(path_str, read_info=False):
     return reader.Execute()
 
 
-def dcmresize(input_path, output_path, size=256):
-    ds = dcmread(input_path)
-    src_size = ds.Rows
-    print(ds.Rows, ds.Columns)
-    img = ds.pixel_array
-    res = cv2.resize(img, (256, 256))
-    ds.PixelData = res.tobytes()
-    ds.Rows = ds.Columns = size
-    ds.PixelSpacing = list(map(lambda x: x * src_size / size, ds.PixelSpacing))
-    ds.SmallestImagePixelValue, ds.LargestImagePixelValue = np.min(res), np.max(res)
-    dcmwrite(output_path, ds)
-
-
-def resample_by_spacing(
+def sitk_resample_by_spacing(
     image,
     new_spacing=[1.0, 1.0, 1.0],
     resample_mode=sitk.sitkLinear,
@@ -80,7 +34,7 @@ def resample_by_spacing(
     return resampler.Execute(image)
 
 
-def resample_by_size(
+def sitk_resample_by_size(
     image,
     new_size,
     resample_mode=sitk.sitkLinear,
@@ -100,7 +54,7 @@ def resample_by_size(
     return resampler.Execute(image)
 
 
-def window_normalize(
+def sitk_window_normalize(
     image, window_level=512, window_width=1536, min_value=0.0, max_value=1.0
 ):
     window_filter = sitk.IntensityWindowingImageFilter()
@@ -111,15 +65,9 @@ def window_normalize(
     return window_filter.Execute(image)
 
 
-def get_bbox_from_mask(mask: np.ndarray):
-    nonzero_indexs = np.nonzero(mask)
-    result = []
-    for index in nonzero_indexs:
-        result.extend([np.min(index), np.max(index)])
-    return np.array(result)
-
-
-def get_mask_and_bbox(image, threshold=1500, use_opening=False, kernel_size=(2, 2, 2)):
+def sitk_get_mask_and_bbox(
+    image, threshold=1500, use_opening=False, kernel_size=(2, 2, 2)
+):
     mask = sitk.BinaryThreshold(image, threshold, 5000)
     if use_opening:
         mask = sitk.BinaryMorphologicalOpening(mask, kernel_size)
@@ -131,10 +79,10 @@ def get_mask_and_bbox(image, threshold=1500, use_opening=False, kernel_size=(2, 
     )  # x, y, z
 
 
-def get_preprocessed_from_dcm(
+def sitk_get_preprocessed_from_dcm(
     path_str: str, size=[256, 256, 64], window_level=512, window_width=1536
 ):
-    image = read_series_from_dcm(path_str)
-    image = resample_by_size(image, size)
-    image = window_normalize(image, window_level, window_width)
+    image = sitk_read_series_from_dcm(path_str)
+    image = sitk_resample_by_size(image, size)
+    image = sitk_window_normalize(image, window_level, window_width)
     return sitk.GetArrayFromImage(image)  # z, y, x

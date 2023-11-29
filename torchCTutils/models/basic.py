@@ -66,3 +66,4 @@ class BasicDecoder3d(nn.Sequential):
             )
             self.append(ConvBlock3d(feature, feature))
             in_channels = feature
+        self.append(ConvBlock3d(in_channels, 1))

@@ -2,14 +2,11 @@ from pathlib import Path
 from typing import Union
 
 import numpy as np
-import SimpleITK as sitk
 from pydicom import dcmread
 
 import torch
 from torch import Tensor
 from torchvision.utils import save_image
-
-from .preprocess import resample_by_size
 
 
 def save_multichannel_grayscale_image(
@@ -39,27 +36,15 @@ def save_dcm_from_output(
     output: np.ndarray,
     ds_path: Union[str, Path],
     output_path: Union[str, Path],
-    normalize=True,
-    min_value=-1024,
-    max_value=2048,
+    min_value=0,
+    max_value=3000,
 ):
-    if normalize:
-        output = output * (max_value - min_value) + min_value
-
-    output = np.clip(output, min_value, max_value)
-
-    ds = dcmread(Path(ds_path) / "1.dcm")
-    output_size = (ds.Rows, ds.Columns, int(ds.ImagesInAcquisition))
-    output = (output - int(ds.RescaleIntercept)) / int(ds.RescaleSlope)
-
-    output_image = sitk.GetImageFromArray(output)
-    output_image = resample_by_size(
-        output_image, output_size, output_type=sitk.sitkUInt16
-    )
-    output = sitk.GetArrayFromImage(output_image)
-
+    output = (output * (max_value - min_value) + min_value).astype(np.uint16)
     ds_list = sorted(list(Path(ds_path).glob("*")), key=lambda x: int(x.stem))
+
     for i, slice_path in enumerate(ds_list):
         ds = dcmread(slice_path)
         ds.PixelData = output[i].tobytes()
+        ds.LargestImagePixelValue = np.max(output[i])
+        ds.SmallestImagePixelValue = np.min(output[i])
         ds.save_as(Path(output_path) / f"{i+1}.dcm")
