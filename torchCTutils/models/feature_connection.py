@@ -38,7 +38,7 @@ class FlattenConnection(nn.Module):
 class ExpandConnection(nn.Module):
     """2D => Conv-IN-ReLU(2D) => Expand => Conv-IN-ReLU(3D) => 3D"""
 
-    def __init__(self, input_channels, output_channels, output_depth):
+    def __init__(self, input_channels, output_channels, output_depth, expand_axis=2):
         super(ExpandConnection, self).__init__()
         self.output_depth = output_depth
         self.conv2d = nn.Sequential(
@@ -51,11 +51,16 @@ class ExpandConnection(nn.Module):
             nn.InstanceNorm3d(output_channels),
             nn.ReLU(inplace=True),
         )
+        self.expand_axis = expand_axis
+        self.expand_dims = [-1] * 5
+        self.expand_dims[expand_axis] = output_depth
 
     def forward(self, feature):
-        feature = (
-            self.conv2d(feature).unsqueeze(2).expand(-1, -1, self.output_depth, -1, -1)
-        )
+        feature = self.conv2d(feature)
+        if self.expand_axis != 2:
+            feature = torch.permute(feature, [0, 1, 3, 2])
+        feature = feature.unsqueeze(self.expand_axis).expand(self.expand_dims)
+
         return self.conv3d(feature)
 
 

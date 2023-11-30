@@ -2,7 +2,7 @@ from typing import Callable, Optional, List, Union, Literal
 import torch
 from torch import nn, Tensor
 
-from .attention import CBAM2d, CBAM3d
+from ..attention import CBAM2d, CBAM3d
 
 
 def conv3x3_2d(

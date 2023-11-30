@@ -2,7 +2,7 @@ import torch
 from torch import nn, Tensor
 import torch.nn.functional as F
 
-from ..unet import DoubleConv2d, DoubleConv3d
+from ..cnn.unet import DoubleConv2d, DoubleConv3d
 
 
 class AttentionGate2d(nn.Module):
