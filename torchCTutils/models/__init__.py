@@ -1,5 +1,3 @@
-
-
 from .cnn import *
 
 from .patchgan import PatchGANDiscriminator2d, PatchGANDiscriminator3d
