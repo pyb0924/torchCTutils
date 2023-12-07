@@ -21,9 +21,10 @@ def compare_2d_image(image1, image2, wl=None, ww=None, *args, **kwargs):
     return fig, axes
 
 
-def visualize_3d_image(image, z_slice=1, wl=None, ww=None, *args, **kwargs):
+def visualize_3d_image(
+    image, z_slice=1, wl=None, ww=None, vmin=None, vmax=None, *args, **kwargs
+):
     fig, axes = plt.subplots(*args, **kwargs)
-    vmin = vmax = None
     if wl is not None and ww is not None:
         vmin, vmax = window_to_data_range(wl, ww)
 
@@ -35,9 +36,10 @@ def visualize_3d_image(image, z_slice=1, wl=None, ww=None, *args, **kwargs):
     return fig, axes
 
 
-def compare_3d_image(image1, image2, z_slice=1, wl=None, ww=None, *args, **kwargs):
+def compare_3d_image(
+    image1, image2, z_slice=1, wl=None, ww=None, vmin=None, vmax=None, *args, **kwargs
+):
     cols = image1.shape[0] // z_slice
-    vmin = vmax = None
     if wl is not None and ww is not None:
         vmin, vmax = window_to_data_range(wl, ww)
 

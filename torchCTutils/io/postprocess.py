@@ -39,7 +39,8 @@ def save_dcm_from_output(
     min_value=0,
     max_value=3000,
 ):
-    output = (output * (max_value - min_value) + min_value).astype(np.uint16)
+    output = output * (max_value - min_value) + min_value
+    output = np.clip(output, min_value, max_value).astype(np.uint16)
     ds_list = sorted(list(Path(ds_path).glob("*")), key=lambda x: int(x.stem))
 
     for i, slice_path in enumerate(ds_list):

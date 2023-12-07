@@ -44,10 +44,10 @@ def window_transform(image, wl=1500, ww=3000, normalize=True):
     Returns:
         np.ndarray: normalized CT image
     """
-    window_min, window_max = window_to_data_range(wl, ww)
-    image = np.clip(image, window_min, window_max).astype(np.float32)
+    vmin, vmax = window_to_data_range(wl, ww)
+    image = np.clip(image, vmin, vmax).astype(np.float32)
     if normalize:
-        image = (image - window_min) / ww
+        image = (image - vmin) / ww
 
     return image
 
