@@ -63,6 +63,7 @@ class BaseDataModule(LightningDataModule):
             batch_size=self.train_batch_size,
             num_workers=self.num_workers,
             pin_memory=True,
+            shuffle=True,
         )
 
     def val_dataloader(self):

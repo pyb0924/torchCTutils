@@ -36,6 +36,7 @@ def save_dcm_from_output(
     output: np.ndarray,
     ds_path: Union[str, Path],
     output_path: Union[str, Path],
+    model_name: str = "",
     min_value=0,
     max_value=3000,
 ):
@@ -45,6 +46,7 @@ def save_dcm_from_output(
 
     for i, slice_path in enumerate(ds_list):
         ds = dcmread(slice_path)
+        ds.PatientName+=f"_{model_name}"
         ds.PixelData = output[i].tobytes()
         ds.LargestImagePixelValue = np.max(output[i])
         ds.SmallestImagePixelValue = np.min(output[i])
