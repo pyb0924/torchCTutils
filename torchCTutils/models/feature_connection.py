@@ -6,6 +6,7 @@ from torch import nn, Tensor
 import torch.nn.functional as F
 
 from ..odl import odl_FBP_layer
+from ..tomo import BPlayer
 
 
 class FlattenConnection(nn.Module):
@@ -76,38 +77,51 @@ class TransposeConnection(nn.Module):
         return features
 
 
+# class FeatureFBPConnection(nn.Module):
+#     """2D => Combination => (3D) => Interpolation => FBP => 3D"""
+
+#     def __init__(
+#         self,
+#         size,
+#         dim: Literal[2, 3] = 2,
+#         angles=None,
+#         detector_shape=None,
+#         interpolate=False,
+#     ):
+#         super().__init__()
+#         self.angles = angles if angles is not None else size
+#         self.fbp = odl_FBP_layer(size, dim, self.angles, detector_shape)
+#         self.interpolate = interpolate
+
+#     def circle_interpolate(self, features: tuple[Tensor]):
+#         projections = torch.cat(
+#             [f.unsqueeze(2) for f in features] + [features[0].unsqueeze(2)], dim=2
+#         )
+#         projections = F.interpolate(
+#             projections,
+#             size=(self.angles + 1, projections.shape[-2], projections.shape[-1]),
+#             mode="trilinear",
+#             align_corners=True,
+#         )
+#         return projections[:, :, :-1, :, :]
+
+#     def forward(self, *features: Tensor):
+#         if self.interpolate:
+#             projections = self.circle_interpolate(features)
+#         else:
+#             projections = torch.cat([f.unsqueeze(2) for f in features], dim=2)
+#         return self.fbp(projections).permute(0, 1, 4, 2, 3)
+#         # [batch_size, channels, size, size, size]
+
+
 class FeatureFBPConnection(nn.Module):
     """2D => Combination => (3D) => Interpolation => FBP => 3D"""
 
-    def __init__(
-        self,
-        size,
-        dim: Literal[2, 3] = 2,
-        angles=None,
-        detector_shape=None,
-        interpolate=False,
-    ):
+    def __init__(self, size, angles=None, detector_shape=None):
         super().__init__()
         self.angles = angles if angles is not None else size
-        self.fbp = odl_FBP_layer(size, dim, self.angles, detector_shape)
-        self.interpolate = interpolate
-
-    def circle_interpolate(self, features: tuple[Tensor]):
-        projections = torch.cat(
-            [f.unsqueeze(2) for f in features] + [features[0].unsqueeze(2)], dim=2
-        )
-        projections = F.interpolate(
-            projections,
-            size=(self.angles + 1, projections.shape[-2], projections.shape[-1]),
-            mode="trilinear",
-            align_corners=True,
-        )
-        return projections[:, :, :-1, :, :]
+        self.fbp = BPlayer(size, self.angles, detector_shape)
 
     def forward(self, *features: Tensor):
-        if self.interpolate:
-            projections = self.circle_interpolate(features)
-        else:
-            projections = torch.cat([f.unsqueeze(2) for f in features], dim=2)
-        return self.fbp(projections).permute(0, 1, 4, 2, 3)
-        # [batch_size, channels, size, size, size]
+        projections = torch.cat([f.unsqueeze(3) for f in features], dim=3)
+        return self.fbp(projections)
