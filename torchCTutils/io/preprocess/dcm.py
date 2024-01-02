@@ -6,15 +6,26 @@ from pydicom import dcmread
 import SimpleITK as sitk
 
 
-def dcm_clamp(ds, min_value=0, max_value=3000):
+def dcm_crop(ds, xmin, xmax, ymin, ymax, modify_minmax_tag=True):
+    img = ds.pixel_array
+    res = img[xmin:xmax, ymin:ymax]
+    ds.PixelData = res.tobytes()
+    ds.Rows, ds.Columns = res.shape
+    if modify_minmax_tag:
+        ds.SmallestImagePixelValue, ds.LargestImagePixelValue = np.min(res), np.max(res)
+    return ds
+
+def dcm_clamp(ds, min_value=0, max_value=3000, modify_minmax_tag=True):
     img = ds.pixel_array
     res = np.clip(img, min_value, max_value)
     ds.PixelData = res.tobytes()
-    ds.SmallestImagePixelValue, ds.LargestImagePixelValue = np.min(res), np.max(res)
+    if modify_minmax_tag:
+        ds.SmallestImagePixelValue, ds.LargestImagePixelValue = np.min(res), np.max(res)
+
     return ds
 
 
-def dcm_resize(ds, size=256):
+def dcm_resize(ds, size=256, modify_minmax_tag=True):
     src_size = ds.Rows
     print(ds.Rows, ds.Columns)
     img = ds.pixel_array
@@ -22,7 +33,10 @@ def dcm_resize(ds, size=256):
     ds.PixelData = res.tobytes()
     ds.Rows = ds.Columns = size
     ds.PixelSpacing = list(map(lambda x: x * src_size / size, ds.PixelSpacing))
-    ds.SmallestImagePixelValue, ds.LargestImagePixelValue = np.min(res), np.max(res)
+
+    if modify_minmax_tag:
+        ds.SmallestImagePixelValue, ds.LargestImagePixelValue = np.min(res), np.max(res)
+
     return ds
 
 
