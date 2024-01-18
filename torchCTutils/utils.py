@@ -14,6 +14,7 @@ display_configs = [
     "lr",
     "train_batch_size",
     "val_batch_size",
+    "fold",
     "gpu_ids",
 ]
 

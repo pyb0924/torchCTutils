@@ -4,12 +4,28 @@ import numpy as np
 from typing import Literal
 
 
+def get_roi_from_bbox(bbox, size):
+    roi = np.zeros(size)
+    roi[
+        bbox[0] : bbox[1],
+        bbox[2] : bbox[3],
+        bbox[4] : bbox[5],
+    ] = 1
+    return roi
+
+
 def get_bbox_from_mask(mask: np.ndarray):
     nonzero_indexs = np.nonzero(mask)
     result = []
     for index in nonzero_indexs:
         result.extend([np.min(index), np.max(index)])
     return np.array(result)
+
+
+def get_roi_from_mask(mask: np.ndarray):
+    bbox = get_bbox_from_mask(mask)
+    roi = get_roi_from_bbox(bbox, mask.shape)
+    return bbox, roi
 
 
 def get_mask_by_threshold(image: np.ndarray, t1: int, t2: int):
