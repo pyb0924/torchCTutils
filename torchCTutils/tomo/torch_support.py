@@ -43,6 +43,26 @@ def FPlayer(
     return TomoOperatorModule(fp)
 
 
+def FPfunc(
+    size: Union[int, list[int], tuple[int]],
+    angles: Optional[Union[int, np.ndarray]] = None,
+    detector_shape=None,
+):
+    """Get forward projection(FP) function in PyTorch
+
+    Args:
+        size (int): Input image size
+        angles (int, optional): Number of angles to do projection. Defaults to None.
+        detector_shape: Detector shape. Defaults to None.
+
+    Returns:
+        nn.Module: PyTorch FP module
+    """
+
+    fp = get_FP_operator(size, angles, detector_shape)
+    return to_autograd(fp, num_extra_dims=2)
+
+
 def BPlayer(
     size: Union[int, list[int], tuple[int]],
     angles: Optional[Union[int, np.ndarray]] = None,
@@ -61,6 +81,26 @@ def BPlayer(
 
     bp = get_BP_operator(size, angles, detector_shape)
     return TomoOperatorModule(bp)
+
+
+def BPfunc(
+    size: Union[int, list[int], tuple[int]],
+    angles: Optional[Union[int, np.ndarray]] = None,
+    detector_shape=None,
+):
+    """Get back projection(BP) function in PyTorch
+
+    Args:
+        size (int): Input image size
+        angles (int, optional): Number of angles to do projection. Defaults to None.
+        detector_shape: Detector shape. Defaults to None.
+
+    Returns:
+        nn.Module: PyTorch BP module
+    """
+
+    bp = get_BP_operator(size, angles, detector_shape)
+    return to_autograd(bp, num_extra_dims=2)
 
 
 def paired_CTlayer(
