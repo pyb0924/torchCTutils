@@ -23,7 +23,8 @@ def print_config(config: ConfigDict, display_configs=display_configs):
     table = PrettyTable()
     table.title = "Table: Train Configs"
     for key in display_configs:
-        table.add_column(key, [config[key]])
+        if key in config:
+            table.add_column(key, [config[key]])
     print(table)
 
 
