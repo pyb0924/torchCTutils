@@ -7,7 +7,6 @@ from torch import nn
 
 from .operator import get_FP_operator, get_BP_operator
 
-
 class TomoOperatorModule(nn.Module):
     def __init__(self, operator: ts.Operator) -> None:
         super(TomoOperatorModule, self).__init__()
@@ -18,7 +17,6 @@ class TomoOperatorModule(nn.Module):
         x(torch.Tensor): Input image, shape [B,C,D,H,W] / [B,C,DH,A,DW].
         """
         return self.operator(x)
-
     def __repr__(self):
         return f"{self.__class__.__name__}({self.operator.__class__.__name__})"
 
@@ -69,7 +67,7 @@ def BPlayer(
     detector_shape=None,
 ) -> TomoOperatorModule:
     """Get backward projection(BP) module in PyTorch
-
+    
     Args:
         size (int): Input image size
         angles (int, optional): Number of angles to do projection. Defaults to None.
@@ -81,7 +79,6 @@ def BPlayer(
 
     bp = get_BP_operator(size, angles, detector_shape)
     return TomoOperatorModule(bp)
-
 
 def BPfunc(
     size: Union[int, list[int], tuple[int]],

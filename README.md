@@ -1,5 +1,5 @@
 # torchCTutils
-A library for my research
+A library for CT research Using PyTorch
 
 ## Dependencies
 - PyTorch
